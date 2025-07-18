@@ -9,7 +9,7 @@ dotenv.config();
 
 const app = express();
 
-// Middleware
+// Middlewaredaa
 app.use(express.json({ limit: '50mb' })); // Increased limit for base64 images
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cookieParser());

@@ -132,7 +132,7 @@ export default function AdminDashboard() {
                       <td className="py-4 px-4">
                         <div className="w-16 h-16 rounded-lg overflow-hidden">
                           <img
-                            src={`http://localhost:5000/${event.bannerImage}`}
+                            src={`https://capstone-cta.vercel.app/${event.bannerImage}`}
                             alt={event.title}
                             className="w-full h-full object-cover"
                             onError={(e) => {

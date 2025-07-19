@@ -45,7 +45,7 @@ const OrganizerSignup = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post('/auth/organizer/signup', {
+      const response = await axios.post('/organizer/register', {
         name: formData.name,
         email: formData.email,
         password: formData.password,

@@ -29,9 +29,10 @@ const AdminLogin = () => {
 
     try {
       const response = await axios.post('/admin/login', formData);
-      if (response.data.success) {
+      
+      if (response.data.success && response.data.token) {
         dispatch(login({
-          token: document.cookie.split('=')[1], // Get token from cookie
+          token: response.data.token,
           role: 'admin',
           userData: response.data.data
         }));
@@ -40,6 +41,7 @@ const AdminLogin = () => {
         setError('Login failed. Please try again.');
       }
     } catch (err) {
+      console.error('Login error:', err);
       setError(err.response?.data?.message || 'Invalid email or password');
     } finally {
       setLoading(false);

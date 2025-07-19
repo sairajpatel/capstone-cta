@@ -19,7 +19,8 @@ axiosInstance.interceptors.request.use(
     const token = state.auth.token;
 
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      // Ensure token is properly formatted
+      config.headers.Authorization = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
     }
     return config;
   },
@@ -35,9 +36,10 @@ axiosInstance.interceptors.response.use(
     if (error.response?.status === 401) {
       // Handle unauthorized access
       store.dispatch(logout());
-      // Only redirect if not already on login page
-      if (!window.location.pathname.includes('/')) {
-        window.location.href = '/';
+      // Only redirect if not already on login page and not on admin login page
+      const currentPath = window.location.pathname;
+      if (!currentPath.includes('/login') && !currentPath.includes('/admin/login')) {
+        window.location.href = '/admin/login';
       }
     }
     return Promise.reject(error);

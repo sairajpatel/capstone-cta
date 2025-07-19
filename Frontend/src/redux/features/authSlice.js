@@ -45,15 +45,17 @@ const authSlice = createSlice({
   reducers: {
     login: (state, action) => {
       const { token, role, userData } = action.payload;
+      // Ensure token is properly formatted
+      const formattedToken = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
       // Store token in both localStorage and cookie for redundancy
-      localStorage.setItem('token', token);
-      Cookies.set('token', token, {
+      localStorage.setItem('token', formattedToken);
+      Cookies.set('token', formattedToken, {
         expires: 7, // 7 days
         secure: true,
         sameSite: 'Strict'
       });
       // Update state
-      state.token = token;
+      state.token = formattedToken;
       state.role = role;
       state.isAuthenticated = true;
       state.user = userData;

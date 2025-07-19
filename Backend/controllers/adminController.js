@@ -68,14 +68,18 @@ exports.loginAdmin = async (req, res) => {
         }
 
         const token = generateToken(admin._id, 'admin');
+        
+        // Set cookie for additional security
         res.cookie('token', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
         });
 
+        // Send response with token
         res.status(200).json({
             success: true,
+            token: token,
             data: {
                 _id: admin._id,
                 email: admin.email,

@@ -4,7 +4,7 @@ import Cookies from 'js-cookie';
 import { jwtDecode } from 'jwt-decode';
 
 const getInitialUser = () => {
-  const token = Cookies.get('token');
+  const token = localStorage.getItem('token') || Cookies.get('token');
   if (token) {
     try {
       const decoded = jwtDecode(token);
@@ -17,9 +17,12 @@ const getInitialUser = () => {
           email: decoded.email
         };
       }
+      // Clear expired token
+      localStorage.removeItem('token');
       Cookies.remove('token');
     } catch (err) {
       console.error('Invalid token:', err);
+      localStorage.removeItem('token');
       Cookies.remove('token');
     }
   }
@@ -28,7 +31,7 @@ const getInitialUser = () => {
 
 const initialUser = getInitialUser();
 const initialState = {
-  token: Cookies.get('token') || null,
+  token: localStorage.getItem('token') || Cookies.get('token') || null,
   role: initialUser?.role || null,
   isAuthenticated: !!initialUser,
   user: initialUser,
@@ -42,7 +45,8 @@ const authSlice = createSlice({
   reducers: {
     login: (state, action) => {
       const { token, role, userData } = action.payload;
-      // Set the token in cookie
+      // Store token in both localStorage and cookie for redundancy
+      localStorage.setItem('token', token);
       Cookies.set('token', token, {
         expires: 7, // 7 days
         secure: true,
@@ -56,7 +60,8 @@ const authSlice = createSlice({
       state.error = null;
     },
     logout: (state) => {
-      // Clear cookie
+      // Clear storage
+      localStorage.removeItem('token');
       Cookies.remove('token');
       // Reset state
       state.token = null;
@@ -77,11 +82,45 @@ const authSlice = createSlice({
     },
     setLoading: (state, action) => {
       state.loading = action.payload;
+    },
+    validateSession: (state) => {
+      const token = state.token;
+      if (token) {
+        try {
+          const decoded = jwtDecode(token);
+          const isExpired = decoded.exp * 1000 < Date.now();
+          if (isExpired) {
+            // Token expired, logout
+            localStorage.removeItem('token');
+            Cookies.remove('token');
+            state.token = null;
+            state.role = null;
+            state.isAuthenticated = false;
+            state.user = null;
+          }
+        } catch (err) {
+          // Invalid token, logout
+          localStorage.removeItem('token');
+          Cookies.remove('token');
+          state.token = null;
+          state.role = null;
+          state.isAuthenticated = false;
+          state.user = null;
+        }
+      }
     }
   }
 });
 
-export const { login, logout, setUser, setError, clearError, setLoading } = authSlice.actions;
+export const { 
+  login, 
+  logout, 
+  setUser, 
+  setError, 
+  clearError, 
+  setLoading,
+  validateSession 
+} = authSlice.actions;
 
 // Selectors
 export const selectIsAuthenticated = (state) => state.auth.isAuthenticated;

@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { store } from '../redux/store';
+import { logout } from '../redux/features/authSlice';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'https://capstone-cta.vercel.app/api';
 
 const axiosInstance = axios.create({
   baseURL: API_URL,
@@ -32,9 +33,12 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Clear local storage and redirect to login
-      store.dispatch({ type: 'auth/logout' });
-      window.location.href = '/';
+      // Handle unauthorized access
+      store.dispatch(logout());
+      // Only redirect if not already on login page
+      if (!window.location.pathname.includes('/')) {
+        window.location.href = '/';
+      }
     }
     return Promise.reject(error);
   }

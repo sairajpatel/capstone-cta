@@ -4,8 +4,11 @@ import UserFooter from './UserFooter';
 import axios from '../../utils/axios';
 import { toast } from 'react-hot-toast';
 import { processImageUpload } from '../../utils/cloudinaryUpload';
+import { useDispatch } from 'react-redux';
+import { setUser } from '../../redux/features/authSlice';
 
 const UserProfile = () => {
+  const dispatch = useDispatch();
   const [profileData, setProfileData] = useState({
     firstName: '',
     lastName: '',
@@ -110,6 +113,12 @@ const UserProfile = () => {
         setImagePreview(response.data.imageUrl);
         setProfileImage(null); // Clear the selected image
         toast.success('Profile image uploaded successfully');
+        
+        // Update Redux store with new profile image URL
+        dispatch(setUser({
+          ...response.data.user,
+          profileImage: response.data.imageUrl
+        }));
         
         // Refresh profile data to ensure we have the latest image URL
         await fetchProfile();

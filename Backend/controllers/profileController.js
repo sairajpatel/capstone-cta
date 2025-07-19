@@ -103,11 +103,21 @@ const uploadProfileImage = async (req, res) => {
       });
     }
 
+    // Include user data in response
+    const userData = {
+      id: req.user._id,
+      name: req.user.name,
+      email: req.user.email,
+      role: req.user.role,
+      profileImage: uploadResult.secure_url
+    };
+
     console.log('Profile updated with new image URL:', uploadResult.secure_url);
     res.json({ 
       success: true,
       message: 'Profile image uploaded successfully', 
-      imageUrl: uploadResult.secure_url 
+      imageUrl: uploadResult.secure_url,
+      user: userData
     });
   } catch (error) {
     console.error('Error in uploadProfileImage:', error);

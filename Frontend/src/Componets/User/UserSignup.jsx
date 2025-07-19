@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import gatherguru_logo from "../../assets/gatherguru_logo.svg";
-import axios from "axios";
+import axios from "../../utils/axios";  // Update this import
 import { useDispatch } from "react-redux";
 import { login } from "../../redux/features/authSlice";
 import { useNavigate, Link } from "react-router-dom";
@@ -44,7 +44,7 @@ const UserSignup = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post("/auth/signup", {
+      const response = await axios.post("/user/signup", {
         name: formData.name,
         email: formData.email,
         password: formData.password,

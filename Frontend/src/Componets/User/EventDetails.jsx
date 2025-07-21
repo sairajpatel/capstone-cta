@@ -1,8 +1,52 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import axios from '../../utils/axios';
 import BookingForm from './BookingForm';
 
-const EventDetails = ({ event }) => {
+const UserEventDetails = () => {
+  const { eventId } = useParams();
+  const navigate = useNavigate();
+  const [event, setEvent] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [showBookingForm, setShowBookingForm] = useState(false);
+
+  useEffect(() => {
+    fetchEventDetails();
+  }, [eventId]);
+
+  const fetchEventDetails = async () => {
+    try {
+      const response = await axios.get(`/api/events/${eventId}`);
+      setEvent(response.data.data);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to fetch event details');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (error || !event) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <div className="text-red-600 mb-4">{error || 'Event not found'}</div>
+        <button
+          onClick={() => navigate('/events')}
+          className="text-blue-600 hover:text-blue-800"
+        >
+          Back to Events
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="relative">
@@ -37,7 +81,7 @@ const EventDetails = ({ event }) => {
           <div>
             <h2 className="text-xl font-semibold mb-2">Tickets</h2>
             <div className="space-y-2">
-              {event.ticketing.map(ticket => (
+              {event.ticketing && event.ticketing.map(ticket => (
                 <div
                   key={ticket.name}
                   className="flex justify-between items-center p-3 bg-gray-50 rounded"
@@ -64,7 +108,7 @@ const EventDetails = ({ event }) => {
       </div>
 
       {/* Booking Form Modal */}
-      {showBookingForm && (
+      {showBookingForm && event && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="relative">
             <BookingForm
@@ -78,4 +122,4 @@ const EventDetails = ({ event }) => {
   );
 };
 
-export default EventDetails; 
+export default UserEventDetails; 

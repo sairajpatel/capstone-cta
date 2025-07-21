@@ -28,6 +28,7 @@ import AboutUs from './Componets/User/AboutUs';
 import ContactUs from './Componets/User/ContactUs';
 import UserBookings from './Componets/User/UserBookings';
 import TicketVerification from './Componets/User/TicketVerification';
+import EditEvent from './Componets/Organizer/EditEvent';
 
 function App() {
   return (
@@ -80,6 +81,11 @@ function App() {
             </OrganizerProtectWrapper>
           }
         />
+        <Route path="/organizer/edit-event/:eventId" element={
+          <OrganizerProtectWrapper>
+            <EditEvent />
+          </OrganizerProtectWrapper>
+        } />
 
         {/* Admin Routes */}
         <Route path="/admin/login" element={<AdminLogin />} />

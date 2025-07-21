@@ -204,14 +204,12 @@ const OrganizerDashboard = () => {
                     >
                       View Details
                     </button>
-                    {event.status === 'draft' && (
-                      <button
-                        onClick={() => navigate(`/organizer/create-event/edit/${event._id}`)}
-                        className="flex-1 border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
-                      >
-                        Edit
-                      </button>
-                    )}
+                    <button
+                      onClick={() => navigate(`/organizer/edit-event/${event._id}`)}
+                      className="flex-1 border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium"
+                    >
+                      Edit Event
+                    </button>
                   </div>
                 </div>
               </div>

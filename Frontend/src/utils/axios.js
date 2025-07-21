@@ -19,9 +19,14 @@ axiosInstance.interceptors.request.use(
     const token = state.auth.token;
 
     if (token) {
-      // Ensure token is properly formatted
       config.headers.Authorization = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
     }
+
+    // Handle file uploads and JSON data
+    if (config.data && config.data.image) {
+      config.headers['Content-Type'] = 'application/json';
+    }
+
     return config;
   },
   (error) => {
@@ -33,10 +38,10 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
+    console.error('API Error:', error.response?.data || error.message);
+    
     if (error.response?.status === 401) {
-      // Handle unauthorized access
       store.dispatch(logout());
-      // Only redirect if not already on login page and not on admin login page
       const currentPath = window.location.pathname;
       if (!currentPath.includes('/login') && !currentPath.includes('/admin/login')) {
         window.location.href = '/admin/login';

@@ -151,6 +151,8 @@ exports.updateProfile = async (req, res) => {
 // Upload profile image
 exports.uploadProfileImage = async (req, res) => {
     try {
+        console.log('Starting profile image upload...');
+        
         if (!req.body.image) {
             return res.status(400).json({
                 success: false,
@@ -159,6 +161,12 @@ exports.uploadProfileImage = async (req, res) => {
         }
 
         const admin = await Admin.findById(req.admin._id);
+        if (!admin) {
+            return res.status(404).json({
+                success: false,
+                message: 'Admin not found'
+            });
+        }
 
         // Delete old image from Cloudinary if it exists
         if (admin.profileImage) {
@@ -166,13 +174,17 @@ exports.uploadProfileImage = async (req, res) => {
                 const urlParts = admin.profileImage.split('/');
                 const publicIdWithExtension = urlParts[urlParts.length - 1];
                 const publicId = `admin-profiles/${publicIdWithExtension.split('.')[0]}`;
+                console.log('Attempting to delete old image:', publicId);
                 await cloudinary.uploader.destroy(publicId);
+                console.log('Successfully deleted old image');
             } catch (error) {
-                console.log('Error deleting old image:', error);
+                console.error('Error deleting old image:', error);
+                // Continue with upload even if delete fails
             }
         }
 
         // Upload new image to Cloudinary
+        console.log('Uploading new image to Cloudinary...');
         const uploadResult = await cloudinary.uploader.upload(req.body.image, {
             folder: 'admin-profiles',
             width: 500,
@@ -181,8 +193,13 @@ exports.uploadProfileImage = async (req, res) => {
             gravity: "face"
         });
 
+        console.log('Upload result:', {
+            url: uploadResult.secure_url,
+            public_id: uploadResult.public_id
+        });
+
         if (!uploadResult || !uploadResult.secure_url) {
-            throw new Error('Failed to upload image');
+            throw new Error('Failed to upload image to Cloudinary');
         }
 
         // Update admin profile with new image URL
@@ -197,10 +214,11 @@ exports.uploadProfileImage = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Error uploading profile image:', error);
+        console.error('Profile image upload error:', error);
         res.status(500).json({
             success: false,
-            message: error.message
+            message: 'Error uploading profile image',
+            error: error.message
         });
     }
 };

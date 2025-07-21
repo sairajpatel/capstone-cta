@@ -17,7 +17,7 @@ const UserEventDetails = () => {
 
   const fetchEventDetails = async () => {
     try {
-      const response = await axios.get(`/api/events/${eventId}`);
+      const response = await axios.get(`/events/${eventId}`);
       setEvent(response.data.data);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to fetch event details');

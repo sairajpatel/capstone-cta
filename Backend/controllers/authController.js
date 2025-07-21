@@ -171,15 +171,18 @@ exports.organizerLogin = async (req, res) => {
         // Create token
         const token = generateToken(organizer._id, 'organizer');
 
-        // Set cookie
+        // Set cookie with appropriate settings for cross-origin
         res.cookie('token', token, {
-            httpOnly: false,
+            httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+            sameSite: 'None',
+            maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+            path: '/'
         });
 
         res.json({
             success: true,
+            token, // Include token in response body
             data: {
                 _id: organizer._id,
                 name: organizer.name,
@@ -187,11 +190,11 @@ exports.organizerLogin = async (req, res) => {
                 phone: organizer.phone,
                 organization: organizer.organization,
                 isVerified: organizer.isVerified,
-                role: organizer.role,
-                token: token // Include token in response
+                role: organizer.role
             }
         });
     } catch (error) {
+        console.error('Login error:', error);
         res.status(500).json({
             success: false,
             message: error.message

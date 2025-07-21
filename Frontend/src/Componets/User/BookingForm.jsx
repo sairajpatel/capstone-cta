@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from '../../utils/axios';
+import BookingConfirmation from './BookingConfirmation';
 
 const BookingForm = ({ event, onClose }) => {
   const navigate = useNavigate();
@@ -10,6 +11,7 @@ const BookingForm = ({ event, onClose }) => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [bookingConfirmation, setBookingConfirmation] = useState(null);
 
   const selectedTicket = event.ticketing.find(ticket => ticket.name === formData.ticketType);
   const totalAmount = selectedTicket ? selectedTicket.price * formData.quantity : 0;
@@ -29,20 +31,37 @@ const BookingForm = ({ event, onClose }) => {
     setError('');
 
     try {
-      const response = await axios.post('/api/bookings', {
+      const response = await axios.post('/bookings', {
         eventId: event._id,
         ...formData
       });
 
       if (response.data.success) {
-        navigate('/user/bookings');
+        setBookingConfirmation(response.data.data);
+      } else {
+        setError('Booking failed. Please try again.');
       }
     } catch (err) {
+      console.error('Booking error:', err);
       setError(err.response?.data?.message || 'Error creating booking');
     } finally {
       setLoading(false);
     }
   };
+
+  const handleViewBookings = () => {
+    navigate('/user/bookings');
+  };
+
+  if (bookingConfirmation) {
+    return (
+      <BookingConfirmation
+        booking={bookingConfirmation}
+        onClose={onClose}
+        onViewBookings={handleViewBookings}
+      />
+    );
+  }
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
@@ -64,7 +83,7 @@ const BookingForm = ({ event, onClose }) => {
             name="ticketType"
             value={formData.ticketType}
             onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2B293D]"
             required
           >
             {event.ticketing.map(ticket => (
@@ -86,7 +105,7 @@ const BookingForm = ({ event, onClose }) => {
             max={selectedTicket?.quantity || 1}
             value={formData.quantity}
             onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2B293D]"
             required
           />
         </div>
@@ -102,7 +121,7 @@ const BookingForm = ({ event, onClose }) => {
           <button
             type="submit"
             disabled={loading}
-            className={`flex-1 bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors
+            className={`flex-1 bg-[#2B293D] text-white py-2 rounded-lg font-medium hover:bg-opacity-90 transition-colors
               ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
           >
             {loading ? 'Processing...' : 'Confirm Booking'}

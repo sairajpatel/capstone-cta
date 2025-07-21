@@ -1,84 +1,32 @@
-import { Routes, Route, BrowserRouter as Router } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import React from "react";
 import { Toaster } from 'react-hot-toast';
-import AdminLogin from "./pages/AdminLogin";
-import AdminDashboard from "./Componets/AdminDashboard";
+import AdminLogin from './pages/AdminLogin';
+import AdminDashboard from './Componets/AdminDashboard';
 import AdminEventList from './Componets/AdminEventList';
-import AdminProtectWrapper from "./Componets/ProtectionWrapper/AdminProtectWrapper";
-import AdminProfile from "./Componets/AdminProfile";
-import AdminUserList from "./Componets/AdminUserList";
-import UserSignup from "./Componets/User/UserSignup";
-import { UserDashboard } from "./Componets/User/UserDashboard";
-import UserProtection from "./Componets/User/ProtectionWrapper/UserProtection";
-import UserLogin from "./Componets/User/UserLogin";
-import UserProfile from "./Componets/User/UserProfile";
-import OrganizerLogin from "./Componets/Organizer/OrganizerLogin";
-import OrganizerSignup from "./Componets/Organizer/OrganizerSignup";
-import OrganizerDashboard from "./Componets/Organizer/OrganizerDashboard";
-import OrganizerProtectWrapper from "./Componets/ProtectionWrapper/OrganizerProtectWrapper";
-import BasicDetails from "./Componets/Organizer/CreateEvent/BasicDetails";
-import BannerUpload from "./Componets/Organizer/CreateEvent/BannerUpload";
-import Ticketing from "./Componets/Organizer/CreateEvent/Ticketing";
-import Review from "./Componets/Organizer/CreateEvent/Review";
-import EventSteps from './Componets/Organizer/CreateEvent/EventSteps';
-import EventDetails from './Componets/Organizer/EventDetails';
-import UserEventDetails from './Componets/User/EventDetails';
+import AdminUserList from './Componets/AdminUserList';
+import AdminProfile from './Componets/AdminProfile';
+import AdminProtectWrapper from './Componets/ProtectionWrapper/AdminProtectWrapper';
+import OrganizerProtectWrapper from './Componets/ProtectionWrapper/OrganizerProtectWrapper';
+import UserProtection from './Componets/User/ProtectionWrapper/UserProtection';
+import OrganizerDashboard from './Componets/Organizer/OrganizerDashboard';
+import OrganizerLogin from './Componets/Organizer/OrganizerLogin';
+import OrganizerSignup from './Componets/Organizer/OrganizerSignup';
+import UserDashboard from './Componets/User/UserDashboard';
+import UserLogin from './Componets/User/UserLogin';
+import UserSignup from './Componets/User/UserSignup';
+import UserProfile from './Componets/User/UserProfile';
+import UserBookings from './Componets/User/UserBookings';
 import ExploreEvents from './Componets/User/ExploreEvents';
+import EventDetails from './Componets/User/EventDetails';
 import AboutUs from './Componets/User/AboutUs';
 import ContactUs from './Componets/User/ContactUs';
-import UserBookings from './Componets/User/UserBookings';
 
 function App() {
   return (
-    <Router>
+    <>
       <Toaster position="top-right" />
       <Routes>
-        {/* Root Route - User Login */}
-        <Route path="/" element={<UserLogin />} />
-        <Route path="/user/login" element={<UserLogin />} />
-
-        {/* User Routes */}
-        <Route path="/user/signup" element={<UserSignup />} />
-        <Route path="/user/dashboard" element={<UserProtection><UserDashboard /></UserProtection>} />
-        <Route path="/user/profile" element={<UserProtection><UserProfile /></UserProtection>} />
-        <Route path="/user/bookings" element={<UserProtection><UserBookings /></UserProtection>} />
-        <Route path="/events" element={<ExploreEvents />} />
-        <Route path="/events/:eventId" element={<UserEventDetails />} />
-        <Route path="/about" element={<AboutUs />} />
-        <Route path="/contact" element={<ContactUs />} />
-
-        {/* Organizer Routes */}
-        <Route path="/organizer/login" element={<OrganizerLogin />} />
-        <Route path="/organizer/signup" element={<OrganizerSignup />} />
-        <Route path="/organizer/dashboard" element={<OrganizerProtectWrapper><OrganizerDashboard /></OrganizerProtectWrapper>} />
-        <Route path="/organizer/create-event" element={<OrganizerProtectWrapper><BasicDetails /></OrganizerProtectWrapper>} />
-        <Route path="/organizer/create-event/edit/:eventId" element={<OrganizerProtectWrapper><EventSteps /></OrganizerProtectWrapper>} />
-        <Route path="/organizer/events/:eventId" element={<OrganizerProtectWrapper><EventDetails /></OrganizerProtectWrapper>} />
-        <Route
-          path="/organizer/create-event/banner/:eventId"
-          element={
-            <OrganizerProtectWrapper>
-              <BannerUpload />
-            </OrganizerProtectWrapper>
-          }
-        />
-        <Route
-          path="/organizer/create-event/ticketing/:eventId"
-          element={
-            <OrganizerProtectWrapper>
-              <Ticketing />
-            </OrganizerProtectWrapper>
-          }
-        />
-        <Route
-          path="/organizer/create-event/review/:eventId"
-          element={
-            <OrganizerProtectWrapper>
-              <Review />
-            </OrganizerProtectWrapper>
-          }
-        />
-
         {/* Admin Routes */}
         <Route path="/admin-login" element={<AdminLogin />} />
         <Route path="/admin/dashboard" element={<AdminProtectWrapper><AdminDashboard /></AdminProtectWrapper>} />
@@ -86,10 +34,26 @@ function App() {
         <Route path="/admin/users" element={<AdminProtectWrapper><AdminUserList /></AdminProtectWrapper>} />
         <Route path="/admin/profile" element={<AdminProtectWrapper><AdminProfile /></AdminProtectWrapper>} />
 
-        {/* Catch all - Redirect to User Login */}
+        {/* Organizer Routes */}
+        <Route path="/organizer/login" element={<OrganizerLogin />} />
+        <Route path="/organizer/signup" element={<OrganizerSignup />} />
+        <Route path="/organizer/dashboard" element={<OrganizerProtectWrapper><OrganizerDashboard /></OrganizerProtectWrapper>} />
+
+        {/* User Routes */}
+        <Route path="/" element={<UserDashboard />} />
+        <Route path="/user/login" element={<UserLogin />} />
+        <Route path="/user/signup" element={<UserSignup />} />
+        <Route path="/user/profile" element={<UserProtection><UserProfile /></UserProtection>} />
+        <Route path="/user/bookings" element={<UserProtection><UserBookings /></UserProtection>} />
+        <Route path="/events" element={<ExploreEvents />} />
+        <Route path="/events/:eventId" element={<EventDetails />} />
+        <Route path="/about" element={<AboutUs />} />
+        <Route path="/contact" element={<ContactUs />} />
+
+        {/* Default Route */}
         <Route path="*" element={<UserLogin />} />
       </Routes>
-    </Router>
+    </>
   );
 }
 

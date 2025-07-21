@@ -8,14 +8,17 @@ const BookingForm = ({ event, onClose }) => {
   const navigate = useNavigate();
   const { user, token } = useSelector((state) => state.auth);
   const [formData, setFormData] = useState({
-    ticketType: event.ticketing[0]?.name || '',
+    ticketType: event.eventType === 'free' ? 'Free Entry' : (event.ticketing[0]?.name || ''),
     quantity: 1
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [bookingConfirmation, setBookingConfirmation] = useState(null);
 
-  const selectedTicket = event.ticketing.find(ticket => ticket.name === formData.ticketType);
+  // For free events, create a default ticket
+  const selectedTicket = event.eventType === 'free' 
+    ? { name: 'Free Entry', price: 0, quantity: 999 }
+    : event.ticketing.find(ticket => ticket.name === formData.ticketType);
   const totalAmount = selectedTicket ? selectedTicket.price * formData.quantity : 0;
 
   const handleChange = (e) => {
@@ -94,24 +97,26 @@ const BookingForm = ({ event, onClose }) => {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Ticket Type
-          </label>
-          <select
-            name="ticketType"
-            value={formData.ticketType}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2B293D]"
-            required
-          >
-            {event.ticketing.map(ticket => (
-              <option key={ticket.name} value={ticket.name}>
-                {ticket.name} - ${ticket.price}
-              </option>
-            ))}
-          </select>
-        </div>
+        {event.eventType !== 'free' && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Ticket Type
+            </label>
+            <select
+              name="ticketType"
+              value={formData.ticketType}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2B293D]"
+              required
+            >
+              {event.ticketing.map(ticket => (
+                <option key={ticket.name} value={ticket.name}>
+                  {ticket.name} - ${ticket.price}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">

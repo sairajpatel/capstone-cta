@@ -24,25 +24,34 @@ exports.createBooking = async (req, res) => {
       });
     }
 
-    // Find the ticket type and calculate total amount
-    const selectedTicket = event.ticketing.find(ticket => ticket.name === ticketType);
-    if (!selectedTicket) {
-      return res.status(404).json({
-        success: false,
-        message: 'Ticket type not found'
-      });
-    }
+    let totalAmount = 0;
 
-    // Check if enough tickets are available
-    if (selectedTicket.quantity < quantity) {
-      return res.status(400).json({
-        success: false,
-        message: 'Not enough tickets available'
-      });
-    }
+    // Handle ticketed events
+    if (event.eventType === 'ticketed') {
+      // Find the ticket type and calculate total amount
+      const selectedTicket = event.ticketing.find(ticket => ticket.name === ticketType);
+      if (!selectedTicket) {
+        return res.status(404).json({
+          success: false,
+          message: 'Ticket type not found'
+        });
+      }
 
-    // Calculate total amount
-    const totalAmount = selectedTicket.price * quantity;
+      // Check if enough tickets are available
+      if (selectedTicket.quantity < quantity) {
+        return res.status(400).json({
+          success: false,
+          message: 'Not enough tickets available'
+        });
+      }
+
+      // Calculate total amount
+      totalAmount = selectedTicket.price * quantity;
+
+      // Update ticket quantity
+      selectedTicket.quantity -= quantity;
+      await event.save();
+    }
 
     // Create the booking
     const booking = await Booking.create({
@@ -52,10 +61,6 @@ exports.createBooking = async (req, res) => {
       quantity,
       totalAmount
     });
-
-    // Update ticket quantity
-    selectedTicket.quantity -= quantity;
-    await event.save();
 
     // Populate event and user details with specific fields
     await booking.populate([

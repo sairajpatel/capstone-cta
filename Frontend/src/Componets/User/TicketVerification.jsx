@@ -30,6 +30,21 @@ const TicketVerification = () => {
     fetchTicketDetails();
   }, [bookingId]);
 
+  const formatDate = (dateString) => {
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'TBA';
+      return date.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    } catch (error) {
+      return 'TBA';
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -67,6 +82,20 @@ const TicketVerification = () => {
               </h2>
             </div>
 
+            {/* Event Banner */}
+            {ticket.event.bannerImage && (
+              <div className="w-full h-64 overflow-hidden">
+                <img
+                  src={ticket.event.bannerImage}
+                  alt={ticket.event.title}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.src = 'https://via.placeholder.com/800x400?text=No+Banner+Image';
+                  }}
+                />
+              </div>
+            )}
+
             {/* Event Details */}
             <div className="p-6">
               <h1 className="text-2xl font-bold text-gray-900 mb-4">{ticket.event.title}</h1>
@@ -77,7 +106,7 @@ const TicketVerification = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm text-gray-600">Date</p>
-                      <p className="font-medium">{new Date(ticket.event.startDate).toLocaleDateString()}</p>
+                      <p className="font-medium">{formatDate(ticket.event.startDate)}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Time</p>

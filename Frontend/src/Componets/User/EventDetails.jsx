@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import axios from '../../utils/axios';
 import BookingForm from './BookingForm';
 import UserNavbar from './UserNavbar';
@@ -8,14 +9,20 @@ import UserFooter from './UserFooter';
 const UserEventDetails = () => {
   const { eventId } = useParams();
   const navigate = useNavigate();
+  const { user, token } = useSelector((state) => state.auth);
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState('');
   const [showBookingForm, setShowBookingForm] = useState(false);
+  const [userBookings, setUserBookings] = useState([]);
+  const [bookingsLoading, setBookingsLoading] = useState(false);
 
   useEffect(() => {
     fetchEventDetails();
-  }, [eventId]);
+    if (user && token) {
+      fetchUserBookings();
+    }
+  }, [eventId, user, token]);
 
   const fetchEventDetails = async () => {
     try {
@@ -33,6 +40,24 @@ const UserEventDetails = () => {
     }
   };
 
+  const fetchUserBookings = async () => {
+    setBookingsLoading(true);
+    try {
+      const response = await axios.get('/bookings/my-bookings');
+      if (response.data.success) {
+        // Filter bookings for this event
+        const eventBookings = response.data.data.filter(
+          booking => booking.event._id === eventId
+        );
+        setUserBookings(eventBookings);
+      }
+    } catch (err) {
+      console.error('Error fetching bookings:', err);
+    } finally {
+      setBookingsLoading(false);
+    }
+  };
+
   const formatDate = (dateString) => {
     try {
       if (!dateString) return 'Date not available';
@@ -47,6 +72,17 @@ const UserEventDetails = () => {
     } catch (error) {
       console.error('Date formatting error:', error);
       return 'Date not available';
+    }
+  };
+
+  const handleCancelBooking = async (bookingId) => {
+    try {
+      const response = await axios.put(`/bookings/${bookingId}/cancel`);
+      if (response.data.success) {
+        fetchUserBookings();
+      }
+    } catch (err) {
+      console.error('Error cancelling booking:', err);
     }
   };
 
@@ -147,6 +183,56 @@ const UserEventDetails = () => {
                   <p className="text-gray-700 whitespace-pre-wrap">{event.description}</p>
                 </div>
               </div>
+
+              {/* User's Tickets Section */}
+              {user && userBookings.length > 0 && (
+                <div>
+                  <h2 className="text-2xl font-bold mb-4">Your Tickets</h2>
+                  <div className="space-y-4">
+                    {userBookings.map(booking => (
+                      <div
+                        key={booking._id}
+                        className="bg-gray-50 rounded-lg p-6 border border-gray-200"
+                      >
+                        <div className="flex justify-between items-start mb-4">
+                          <div>
+                            <p className="font-semibold text-lg">{booking.ticketType}</p>
+                            <p className="text-gray-600">Quantity: {booking.quantity}</p>
+                            <p className="text-gray-600">Total: ${booking.totalAmount}</p>
+                          </div>
+                          <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                            booking.status === 'confirmed'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                          </span>
+                        </div>
+
+                        <div className="space-y-2">
+                          <p className="font-medium text-gray-900">Ticket Numbers:</p>
+                          <div className="bg-white p-3 rounded-lg border border-gray-200">
+                            {booking.ticketNumbers.map(number => (
+                              <div key={number} className="text-sm font-mono text-gray-600">
+                                {number}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {booking.status === 'confirmed' && (
+                          <button
+                            onClick={() => handleCancelBooking(booking._id)}
+                            className="mt-4 text-red-600 hover:text-red-800 text-sm font-medium"
+                          >
+                            Cancel Booking
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Right Column - Ticket Information */}
@@ -213,7 +299,10 @@ const UserEventDetails = () => {
           <div className="relative">
             <BookingForm
               event={event}
-              onClose={() => setShowBookingForm(false)}
+              onClose={() => {
+                setShowBookingForm(false);
+                fetchUserBookings(); // Refresh bookings after new booking
+              }}
             />
           </div>
         </div>

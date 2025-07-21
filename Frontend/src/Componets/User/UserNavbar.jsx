@@ -34,8 +34,8 @@ const UserNavbar = () => {
           <Link to="/about" className="hover:text-yellow-400 text-xl">About</Link>
           <Link to="/contact" className="hover:text-yellow-400 text-xl">Contact</Link>
          
-          <Link to="#" className="flex items-center gap-1 hover:text-yellow-400 text-xl">
-            <FaTicketAlt /> Tickets
+          <Link to="/user/bookings" className="flex items-center gap-2 hover:text-yellow-400 text-xl">
+            <FaTicketAlt /> My Tickets
           </Link>
           <Link to="#" className="flex items-center gap-1 hover:text-yellow-400 text-xl">
             <FaStar /> Interested

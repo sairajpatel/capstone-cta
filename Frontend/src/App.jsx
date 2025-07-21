@@ -26,6 +26,7 @@ import UserEventDetails from './Componets/User/EventDetails';
 import ExploreEvents from './Componets/User/ExploreEvents';
 import AboutUs from './Componets/User/AboutUs';
 import ContactUs from './Componets/User/ContactUs';
+import UserBookings from './Componets/User/UserBookings';
 
 function App() {
   return (
@@ -40,6 +41,7 @@ function App() {
         <Route path="/user/signup" element={<UserSignup />} />
         <Route path="/user/dashboard" element={<UserProtection><UserDashboard /></UserProtection>} />
         <Route path="/user/profile" element={<UserProtection><UserProfile /></UserProtection>} />
+        <Route path="/user/bookings" element={<UserProtection><UserBookings /></UserProtection>} />
         <Route path="/events" element={<ExploreEvents />} />
         <Route path="/events/:eventId" element={<UserEventDetails />} />
         <Route path="/about" element={<AboutUs />} />

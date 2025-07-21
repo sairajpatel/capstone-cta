@@ -21,6 +21,18 @@ const adminSchema = new mongoose.Schema({
         minlength: 6,
         select: false
     },
+    phone: {
+        type: String,
+        trim: true
+    },
+    profileImage: {
+        type: String,
+        default: ''
+    },
+    bio: {
+        type: String,
+        trim: true
+    },
     role: {
         type: String,
         enum: ['admin'],
@@ -30,6 +42,8 @@ const adminSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     }
+}, {
+    timestamps: true
 });
 
 // Encrypt password using bcrypt

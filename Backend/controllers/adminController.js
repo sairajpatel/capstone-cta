@@ -3,6 +3,7 @@ const User = require('../models/userModel');
 const { Event } = require('../models/eventModel'); // Fix the import to destructure Event
 const Organizer = require('../models/organizerModel');
 const Booking = require('../models/bookingModel');
+const cloudinary = require('../config/cloudinary');
 const jwt = require('jsonwebtoken');
 
 // Generate JWT Token
@@ -126,15 +127,77 @@ exports.getProfile = async (req, res) => {
 // Update admin profile
 exports.updateProfile = async (req, res) => {
     try {
-        const admin = await Admin.findByIdAndUpdate(req.admin._id, req.body, {
-            new: true,
-            runValidators: true
-        });
+        const { name, phone, bio } = req.body;
+        const admin = await Admin.findById(req.admin._id);
+
+        if (name) admin.name = name;
+        if (phone) admin.phone = phone;
+        if (bio) admin.bio = bio;
+
+        await admin.save();
+
         res.status(200).json({
             success: true,
             data: admin
         });
     } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+// Upload profile image
+exports.uploadProfileImage = async (req, res) => {
+    try {
+        if (!req.body.image) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please provide an image'
+            });
+        }
+
+        const admin = await Admin.findById(req.admin._id);
+
+        // Delete old image from Cloudinary if it exists
+        if (admin.profileImage) {
+            try {
+                const urlParts = admin.profileImage.split('/');
+                const publicIdWithExtension = urlParts[urlParts.length - 1];
+                const publicId = `admin-profiles/${publicIdWithExtension.split('.')[0]}`;
+                await cloudinary.uploader.destroy(publicId);
+            } catch (error) {
+                console.log('Error deleting old image:', error);
+            }
+        }
+
+        // Upload new image to Cloudinary
+        const uploadResult = await cloudinary.uploader.upload(req.body.image, {
+            folder: 'admin-profiles',
+            width: 500,
+            height: 500,
+            crop: "fill",
+            gravity: "face"
+        });
+
+        if (!uploadResult || !uploadResult.secure_url) {
+            throw new Error('Failed to upload image');
+        }
+
+        // Update admin profile with new image URL
+        admin.profileImage = uploadResult.secure_url;
+        await admin.save();
+
+        res.status(200).json({
+            success: true,
+            data: {
+                imageUrl: uploadResult.secure_url,
+                admin: admin
+            }
+        });
+    } catch (error) {
+        console.error('Error uploading profile image:', error);
         res.status(500).json({
             success: false,
             message: error.message

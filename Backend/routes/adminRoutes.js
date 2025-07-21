@@ -6,6 +6,7 @@ const {
     logout,
     getProfile,
     updateProfile,
+    uploadProfileImage,
     getDashboardStats,
     getUserStats,
     getRevenueStats
@@ -20,6 +21,7 @@ router.post('/logout', protect, restrictTo('admin'), logout);
 // Profile routes
 router.get('/profile', protect, restrictTo('admin'), getProfile);
 router.put('/profile', protect, restrictTo('admin'), updateProfile);
+router.post('/profile/upload-image', protect, restrictTo('admin'), uploadProfileImage);
 
 // Dashboard routes
 router.get('/dashboard/stats', protect, restrictTo('admin'), getDashboardStats);

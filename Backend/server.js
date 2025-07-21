@@ -21,7 +21,7 @@ const allowedOrigins = [
   'https://capstone-cta-duyw.vercel.app',
   'https://capstone-cta.vercel.app'
 ];
-
+//jay shree krishna
 // Configure CORS
 app.use(cors({
   origin: function (origin, callback) {

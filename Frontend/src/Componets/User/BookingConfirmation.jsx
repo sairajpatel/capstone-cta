@@ -1,4 +1,5 @@
 import React from 'react';
+import { QRCodeSVG } from 'qrcode.react';
 import { format } from 'date-fns';
 
 const BookingConfirmation = ({ booking, onClose, onViewBookings }) => {
@@ -24,85 +25,110 @@ const BookingConfirmation = ({ booking, onClose, onViewBookings }) => {
     }
   };
 
+  // Generate QR code data for each ticket
+  const generateTicketQRData = (ticketNumber) => {
+    const ticketData = {
+      eventId: booking.event._id,
+      eventTitle: booking.event.title,
+      ticketNumber: ticketNumber,
+      bookingId: booking._id,
+      ticketType: booking.ticketType
+    };
+    return JSON.stringify(ticketData);
+  };
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4 overflow-hidden">
-        {/* Success Header */}
-        <div className="bg-[#2B293D] p-6 text-center">
-          <div className="mx-auto w-12 h-12 bg-white rounded-full flex items-center justify-center mb-4">
-            <svg className="w-8 h-8 text-[#2B293D]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-          <h2 className="text-2xl font-bold text-white">Booking Confirmed!</h2>
-          <p className="text-gray-300 mt-1">Your tickets have been booked successfully</p>
-        </div>
-
-        {/* Booking Details */}
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
-          <div className="space-y-4">
+          <div className="flex justify-between items-start mb-6">
             <div>
-              <h3 className="text-xl font-semibold text-gray-900">{booking.event.title}</h3>
-              <p className="text-gray-600">
-                {formatEventDate(booking.event)}
-              </p>
-              <p className="text-gray-600">
-                {booking.event.location}
-              </p>
+              <h2 className="text-2xl font-bold text-green-600 mb-2">Booking Confirmed!</h2>
+              <p className="text-gray-600">Thank you for your booking.</p>
             </div>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
 
-            <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">Ticket Type</span>
-                <span className="font-medium">{booking.ticketType}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">Quantity</span>
-                <span className="font-medium">{booking.quantity}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">Total Amount</span>
-                <span className="font-medium">${booking.totalAmount}</span>
-              </div>
-            </div>
+          {/* Event Details */}
+          <div className="mb-8">
+            <h3 className="text-xl font-semibold text-gray-900">{booking.event.title}</h3>
+            <p className="text-gray-600 mt-1">
+              {formatEventDate(booking.event)}
+            </p>
+            <p className="text-gray-600">
+              {booking.event.location}
+            </p>
+          </div>
 
-            <div className="space-y-2">
-              <h4 className="font-medium text-gray-900">Ticket Numbers</h4>
-              <div className="bg-gray-50 rounded-lg p-3">
-                {booking.ticketNumbers.map((number, index) => (
-                  <div key={index} className="text-sm text-gray-600 font-mono">
-                    {number}
-                  </div>
-                ))}
+          {/* Booking Details */}
+          <div className="bg-gray-50 rounded-lg p-4 mb-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-gray-600">Ticket Type</p>
+                <p className="font-medium">{booking.ticketType}</p>
               </div>
-            </div>
-
-            <div className="bg-blue-50 rounded-lg p-4">
-              <div className="flex items-start">
-                <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <div className="ml-3">
-                  <p className="text-sm text-blue-700">
-                    A confirmation email has been sent to your registered email address.
-                  </p>
-                </div>
+              <div>
+                <p className="text-sm text-gray-600">Quantity</p>
+                <p className="font-medium">{booking.quantity}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Total Amount</p>
+                <p className="font-medium">${booking.totalAmount}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Booking ID</p>
+                <p className="font-medium">{booking._id}</p>
               </div>
             </div>
           </div>
 
-          <div className="mt-6 flex gap-4">
+          {/* Tickets with QR Codes */}
+          <div className="space-y-4">
+            <h3 className="font-semibold text-lg text-gray-900">Your Tickets</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {booking.ticketNumbers.map((ticketNumber, index) => (
+                <div key={index} className="bg-white border rounded-lg p-4 flex flex-col items-center">
+                  <QRCodeSVG
+                    value={generateTicketQRData(ticketNumber)}
+                    size={150}
+                    level="H"
+                    includeMargin={true}
+                    imageSettings={{
+                      src: "/path/to/your/logo.png",
+                      x: undefined,
+                      y: undefined,
+                      height: 24,
+                      width: 24,
+                      excavate: true,
+                    }}
+                  />
+                  <div className="mt-3 text-center">
+                    <p className="text-sm font-medium text-gray-900">Ticket #{index + 1}</p>
+                    <p className="text-xs text-gray-500 mt-1">{ticketNumber}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="mt-8 flex flex-col sm:flex-row gap-4">
             <button
               onClick={onViewBookings}
-              className="flex-1 bg-[#2B293D] text-white py-2.5 rounded-lg font-medium hover:bg-opacity-90 transition-colors"
+              className="flex-1 bg-[#2B293D] text-white py-2 px-4 rounded-lg hover:bg-opacity-90 transition-colors"
             >
-              View My Tickets
+              View My Bookings
             </button>
             <button
               onClick={onClose}
-              className="flex-1 bg-gray-100 text-gray-700 py-2.5 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+              className="flex-1 bg-gray-200 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors"
             >
               Close
             </button>

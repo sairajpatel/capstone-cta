@@ -3,11 +3,13 @@ import axios from '../../utils/axios';
 import { format } from 'date-fns';
 import UserNavbar from './UserNavbar';
 import UserFooter from './UserFooter';
+import { QRCodeSVG } from 'qrcode.react';
 
 const UserBookings = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [selectedBooking, setSelectedBooking] = useState(null);
 
   useEffect(() => {
     fetchBookings();
@@ -65,14 +67,22 @@ const UserBookings = () => {
     }
   };
 
+  // Generate QR code data for each ticket
+  const generateTicketQRData = (booking, ticketNumber) => {
+    const ticketData = {
+      eventId: booking.event._id,
+      eventTitle: booking.event.title,
+      ticketNumber: ticketNumber,
+      bookingId: booking._id,
+      ticketType: booking.ticketType
+    };
+    return JSON.stringify(ticketData);
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <UserNavbar />
-        <div className="flex justify-center items-center min-h-[calc(100vh-64px)]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2B293D]"></div>
-        </div>
-        <UserFooter />
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2B293D]"></div>
       </div>
     );
   }
@@ -81,8 +91,8 @@ const UserBookings = () => {
     <div className="min-h-screen bg-gray-50">
       <UserNavbar />
       
-      <main className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8">My Tickets</h1>
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-2xl font-bold mb-8">My Tickets</h1>
 
         {error && (
           <div className="bg-red-50 text-red-700 p-4 rounded-lg mb-6">
@@ -107,6 +117,7 @@ const UserBookings = () => {
                 key={booking._id}
                 className="bg-white rounded-lg shadow-md overflow-hidden"
               >
+                {/* Event Banner */}
                 {booking.event.bannerImage && (
                   <div className="h-48 overflow-hidden">
                     <img
@@ -119,66 +130,79 @@ const UserBookings = () => {
                     />
                   </div>
                 )}
-                <div className="p-6">
-                  <h2 className="text-xl font-semibold mb-2">
-                    {booking.event.title}
-                  </h2>
-                  <div className="space-y-2 text-gray-600">
-                    <p>
-                      <span className="font-medium">Date: </span>
-                      {formatEventDate(booking.event)}
-                    </p>
-                    <p>
-                      <span className="font-medium">Location: </span>
-                      {booking.event.location}
-                    </p>
-                    <p>
-                      <span className="font-medium">Ticket Type: </span>
-                      {booking.ticketType}
-                    </p>
-                    <p>
-                      <span className="font-medium">Quantity: </span>
-                      {booking.quantity}
-                    </p>
-                    <p>
-                      <span className="font-medium">Total Amount: </span>
-                      ${booking.totalAmount}
-                    </p>
-                    <p>
-                      <span className="font-medium">Status: </span>
-                      <span className={`font-medium ${
-                        booking.status === 'confirmed' ? 'text-green-600' : 'text-red-600'
-                      }`}>
-                        {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
-                      </span>
-                    </p>
-                  </div>
 
-                  <div className="mt-4 space-y-2">
-                    <p className="font-medium">Ticket Numbers:</p>
-                    <div className="bg-gray-50 p-2 rounded">
-                      {booking.ticketNumbers.map(number => (
-                        <div key={number} className="text-sm text-gray-600 font-mono">
-                          {number}
-                        </div>
-                      ))}
+                {/* Event Details */}
+                <div className="p-6">
+                  <h3 className="text-xl font-semibold mb-2">{booking.event.title}</h3>
+                  <p className="text-gray-600 mb-4">{formatEventDate(booking.event)}</p>
+                  <p className="text-gray-600 mb-4">{booking.event.location}</p>
+
+                  {/* Booking Details */}
+                  <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-gray-600">Ticket Type</p>
+                        <p className="font-medium">{booking.ticketType}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Quantity</p>
+                        <p className="font-medium">{booking.quantity}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Total Amount</p>
+                        <p className="font-medium">${booking.totalAmount}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Status</p>
+                        <p className={`font-medium ${
+                          booking.status === 'confirmed' ? 'text-green-600' : 'text-red-600'
+                        }`}>
+                          {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                        </p>
+                      </div>
                     </div>
                   </div>
 
+                  {/* Tickets */}
                   {booking.status === 'confirmed' && (
-                    <button
-                      onClick={() => handleCancelBooking(booking._id)}
-                      className="mt-4 w-full bg-red-600 text-white py-2 rounded hover:bg-red-700 transition-colors"
-                    >
-                      Cancel Booking
-                    </button>
+                    <div>
+                      <h4 className="font-medium text-gray-900 mb-3">Your Tickets</h4>
+                      <div className="grid grid-cols-2 gap-3">
+                        {booking.ticketNumbers.map((ticketNumber, index) => (
+                          <div key={index} className="bg-gray-50 rounded-lg p-3 flex flex-col items-center">
+                            <QRCodeSVG
+                              value={generateTicketQRData(booking, ticketNumber)}
+                              size={100}
+                              level="H"
+                              includeMargin={true}
+                            />
+                            <div className="mt-2 text-center">
+                              <p className="text-xs font-medium text-gray-900">Ticket #{index + 1}</p>
+                              <p className="text-xs text-gray-500 mt-1">{ticketNumber}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Actions */}
+                  {booking.status === 'confirmed' && (
+                    <div className="mt-4 flex justify-end">
+                      <button
+                        onClick={() => handleCancelBooking(booking._id)}
+                        className="text-red-600 hover:text-red-800 text-sm font-medium"
+                      >
+                        Cancel Booking
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
             ))}
           </div>
         )}
-      </main>
+      </div>
 
       <UserFooter />
     </div>

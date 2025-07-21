@@ -36,14 +36,22 @@ const ExploreEvents = () => {
 
   const categories = [
     { label: 'All Categories', value: '' },
-    { label: 'Music Concert', value: 'MUSIC_CONCERT' },
-    { label: 'Food Festival', value: 'FOOD_FESTIVAL' },
-    { label: 'Art Exhibition', value: 'ART_EXHIBITION' },
-    { label: 'Sports Event', value: 'SPORTS_EVENT' },
+    { label: 'Musical Concert', value: 'MUSICAL_CONCERT' },
+    { label: 'Wedding', value: 'WEDDING' },
+    { label: 'Corporate Event', value: 'CORPORATE_EVENT' },
+    { label: 'Birthday Party', value: 'BIRTHDAY_PARTY' },
     { label: 'Conference', value: 'CONFERENCE' },
+    { label: 'Seminar', value: 'SEMINAR' },
     { label: 'Workshop', value: 'WORKSHOP' },
+    { label: 'Exhibition', value: 'EXHIBITION' },
+    { label: 'Sports Event', value: 'SPORTS_EVENT' },
+    { label: 'Charity Event', value: 'CHARITY_EVENT' },
+    { label: 'Food Festival', value: 'FOOD_FESTIVAL' },
+    { label: 'Cultural Festival', value: 'CULTURAL_FESTIVAL' },
+    { label: 'Theater Play', value: 'THEATER_PLAY' },
     { label: 'Comedy Show', value: 'COMEDY_SHOW' },
-    { label: 'Theater Play', value: 'THEATER_PLAY' }
+    { label: 'Networking Event', value: 'NETWORKING_EVENT' },
+    { label: 'Other', value: 'OTHER' }
   ];
 
   useEffect(() => {

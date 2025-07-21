@@ -32,7 +32,8 @@ export const UserDashboard = () => {
     { label: 'Cultural Festival', value: 'CULTURAL_FESTIVAL' },
     { label: 'Theater Play', value: 'THEATER_PLAY' },
     { label: 'Comedy Show', value: 'COMEDY_SHOW' },
-    { label: 'Networking Event', value: 'NETWORKING_EVENT' }
+    { label: 'Networking Event', value: 'NETWORKING_EVENT' },
+    { label: 'Other', value: 'OTHER' }
   ];
 
   useEffect(() => {

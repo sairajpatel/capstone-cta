@@ -112,11 +112,18 @@ exports.logout = async (req, res) => {
 exports.getProfile = async (req, res) => {
     try {
         const admin = await Admin.findById(req.admin._id);
+        if (!admin) {
+            return res.status(404).json({
+                success: false,
+                message: 'Admin not found'
+            });
+        }
         res.status(200).json({
             success: true,
             data: admin
         });
     } catch (error) {
+        console.error('Error getting admin profile:', error);
         res.status(500).json({
             success: false,
             message: error.message
@@ -129,6 +136,12 @@ exports.updateProfile = async (req, res) => {
     try {
         const { name, phone, bio } = req.body;
         const admin = await Admin.findById(req.admin._id);
+        if (!admin) {
+            return res.status(404).json({
+                success: false,
+                message: 'Admin not found'
+            });
+        }
 
         if (name) admin.name = name;
         if (phone) admin.phone = phone;
@@ -141,6 +154,7 @@ exports.updateProfile = async (req, res) => {
             data: admin
         });
     } catch (error) {
+        console.error('Error updating admin profile:', error);
         res.status(500).json({
             success: false,
             message: error.message

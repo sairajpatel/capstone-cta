@@ -11,7 +11,8 @@ const {
     getUserStats,
     getRevenueStats
 } = require('../controllers/adminController');
-const { protect, restrictTo } = require('../middleware/authMiddleware');
+const { protect } = require('../middleware/auth');
+const { restrictTo } = require('../middleware/authMiddleware');
 
 // Auth routes
 router.post('/register', registerAdmin);

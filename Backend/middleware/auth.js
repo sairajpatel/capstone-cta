@@ -7,13 +7,13 @@ exports.protect = async (req, res, next) => {
     try {
         let token;
 
-        // Check for token in cookies
-        if (req.cookies.token) {
-            token = req.cookies.token;
-        }
         // Check for token in Authorization header
-        else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+        if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
             token = req.headers.authorization.split(' ')[1];
+        }
+        // Check for token in cookies
+        else if (req.cookies.token) {
+            token = req.cookies.token;
         }
 
         if (!token) {
@@ -25,34 +25,38 @@ exports.protect = async (req, res, next) => {
 
         try {
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            
-            // Log the decoded token for debugging
             console.log('Decoded token:', decoded);
 
-            if (decoded.role === 'organizer') {
-                req.organizer = await Organizer.findById(decoded.id);
-                if (!req.organizer) {
-                    return res.status(401).json({
-                        success: false,
-                        message: 'Organizer not found'
-                    });
-                }
-            } else if (decoded.role === 'user') {
-                req.user = await User.findById(decoded.id);
-                if (!req.user) {
-                    return res.status(401).json({
-                        success: false,
-                        message: 'User not found'
-                    });
-                }
-            } else if (decoded.role === 'admin') {
-                req.admin = await Admin.findById(decoded.id);
-                if (!req.admin) {
+            if (decoded.role === 'admin') {
+                const admin = await Admin.findById(decoded.id);
+                if (!admin) {
                     return res.status(401).json({
                         success: false,
                         message: 'Admin not found'
                     });
                 }
+                req.admin = admin;
+                req.userRole = 'admin';
+            } else if (decoded.role === 'organizer') {
+                const organizer = await Organizer.findById(decoded.id);
+                if (!organizer) {
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Organizer not found'
+                    });
+                }
+                req.organizer = organizer;
+                req.userRole = 'organizer';
+            } else if (decoded.role === 'user') {
+                const user = await User.findById(decoded.id);
+                if (!user) {
+                    return res.status(401).json({
+                        success: false,
+                        message: 'User not found'
+                    });
+                }
+                req.user = user;
+                req.userRole = 'user';
             } else {
                 return res.status(401).json({
                     success: false,
@@ -60,8 +64,6 @@ exports.protect = async (req, res, next) => {
                 });
             }
 
-            // Add token to request for future use
-            req.token = token;
             next();
         } catch (err) {
             console.error('Token verification error:', err);

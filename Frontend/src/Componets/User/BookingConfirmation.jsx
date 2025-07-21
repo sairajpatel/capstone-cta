@@ -1,21 +1,25 @@
 import React from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { format } from 'date-fns';
+import { generateTicketQRData } from '../../utils/qrCodeUtils';
 
 const BookingConfirmation = ({ booking, onClose, onViewBookings }) => {
   const formatEventDate = (event) => {
     try {
-      if (!event) return 'Date not available';
-      
-      const { startDate, startTime, endTime } = event;
-      if (!startDate) return 'Date not available';
+      if (!event || !event.startDate) return 'Date not available';
 
-      const date = new Date(startDate);
+      const date = new Date(event.startDate);
       if (isNaN(date.getTime())) return 'Date not available';
 
-      const formattedDate = format(date, 'EEEE, MMMM d, yyyy');
-      const timeString = startTime ? 
-        (endTime ? `${startTime} - ${endTime}` : startTime) 
+      const options = { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      };
+      
+      const formattedDate = date.toLocaleDateString('en-US', options);
+      const timeString = event.startTime ? 
+        (event.endTime ? `${event.startTime} - ${event.endTime}` : event.startTime) 
         : '';
 
       return timeString ? `${formattedDate} at ${timeString}` : formattedDate;
@@ -23,18 +27,6 @@ const BookingConfirmation = ({ booking, onClose, onViewBookings }) => {
       console.error('Date formatting error:', error);
       return 'Date not available';
     }
-  };
-
-  // Generate QR code data for each ticket
-  const generateTicketQRData = (ticketNumber) => {
-    const ticketData = {
-      eventId: booking.event._id,
-      eventTitle: booking.event.title,
-      ticketNumber: ticketNumber,
-      bookingId: booking._id,
-      ticketType: booking.ticketType
-    };
-    return JSON.stringify(ticketData);
   };
 
   return (
@@ -59,12 +51,8 @@ const BookingConfirmation = ({ booking, onClose, onViewBookings }) => {
           {/* Event Details */}
           <div className="mb-8">
             <h3 className="text-xl font-semibold text-gray-900">{booking.event.title}</h3>
-            <p className="text-gray-600 mt-1">
-              {formatEventDate(booking.event)}
-            </p>
-            <p className="text-gray-600">
-              {booking.event.location}
-            </p>
+            <p className="text-gray-600 mt-1">{formatEventDate(booking.event)}</p>
+            <p className="text-gray-600">{booking.event.location}</p>
           </div>
 
           {/* Booking Details */}
@@ -94,23 +82,17 @@ const BookingConfirmation = ({ booking, onClose, onViewBookings }) => {
             <h3 className="font-semibold text-lg text-gray-900">Your Tickets</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {booking.ticketNumbers.map((ticketNumber, index) => (
-                <div key={index} className="bg-white border rounded-lg p-4 flex flex-col items-center">
-                  <QRCodeSVG
-                    value={generateTicketQRData(ticketNumber)}
-                    size={150}
-                    level="H"
-                    includeMargin={true}
-                    imageSettings={{
-                      src: "/path/to/your/logo.png",
-                      x: undefined,
-                      y: undefined,
-                      height: 24,
-                      width: 24,
-                      excavate: true,
-                    }}
-                  />
-                  <div className="mt-3 text-center">
-                    <p className="text-sm font-medium text-gray-900">Ticket #{index + 1}</p>
+                <div key={index} className="bg-white border-2 border-gray-200 rounded-lg p-6 flex flex-col items-center">
+                  <div className="bg-white p-3 rounded-lg shadow-md">
+                    <QRCodeSVG
+                      value={generateTicketQRData(booking, ticketNumber)}
+                      size={180}
+                      level="H"
+                      includeMargin={true}
+                    />
+                  </div>
+                  <div className="mt-4 text-center">
+                    <p className="text-sm font-semibold text-gray-900">Ticket #{index + 1}</p>
                     <p className="text-xs text-gray-500 mt-1">{ticketNumber}</p>
                   </div>
                 </div>

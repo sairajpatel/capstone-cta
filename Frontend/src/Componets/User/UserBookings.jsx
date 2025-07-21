@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import axios from '../../utils/axios';
-import { format } from 'date-fns';
 import UserNavbar from './UserNavbar';
 import UserFooter from './UserFooter';
 import { QRCodeSVG } from 'qrcode.react';
+import { generateTicketQRData } from '../../utils/qrCodeUtils';
 
 const UserBookings = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [selectedBooking, setSelectedBooking] = useState(null);
 
   useEffect(() => {
     fetchBookings();
@@ -47,17 +46,21 @@ const UserBookings = () => {
 
   const formatEventDate = (event) => {
     try {
-      if (!event) return 'Date not available';
-      
-      const { startDate, startTime, endTime } = event;
-      if (!startDate) return 'Date not available';
+      if (!event || !event.startDate) return 'Date not available';
 
-      const date = new Date(startDate);
+      const date = new Date(event.startDate);
       if (isNaN(date.getTime())) return 'Date not available';
 
-      const formattedDate = format(date, 'EEEE, MMMM d, yyyy');
-      const timeString = startTime ? 
-        (endTime ? `${startTime} - ${endTime}` : startTime) 
+      const options = { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      };
+      
+      const formattedDate = date.toLocaleDateString('en-US', options);
+      const timeString = event.startTime ? 
+        (event.endTime ? `${event.startTime} - ${event.endTime}` : event.startTime) 
         : '';
 
       return timeString ? `${formattedDate} at ${timeString}` : formattedDate;
@@ -65,18 +68,6 @@ const UserBookings = () => {
       console.error('Date formatting error:', error);
       return 'Date not available';
     }
-  };
-
-  // Generate QR code data for each ticket
-  const generateTicketQRData = (booking, ticketNumber) => {
-    const ticketData = {
-      eventId: booking.event._id,
-      eventTitle: booking.event.title,
-      ticketNumber: ticketNumber,
-      bookingId: booking._id,
-      ticketType: booking.ticketType
-    };
-    return JSON.stringify(ticketData);
   };
 
   if (loading) {
@@ -169,14 +160,16 @@ const UserBookings = () => {
                       <h4 className="font-medium text-gray-900 mb-3">Your Tickets</h4>
                       <div className="grid grid-cols-2 gap-3">
                         {booking.ticketNumbers.map((ticketNumber, index) => (
-                          <div key={index} className="bg-gray-50 rounded-lg p-3 flex flex-col items-center">
-                            <QRCodeSVG
-                              value={generateTicketQRData(booking, ticketNumber)}
-                              size={100}
-                              level="H"
-                              includeMargin={true}
-                            />
-                            <div className="mt-2 text-center">
+                          <div key={index} className="bg-gray-50 rounded-lg p-4 flex flex-col items-center">
+                            <div className="bg-white p-2 rounded-lg shadow-sm">
+                              <QRCodeSVG
+                                value={generateTicketQRData(booking, ticketNumber)}
+                                size={120}
+                                level="H"
+                                includeMargin={true}
+                              />
+                            </div>
+                            <div className="mt-3 text-center">
                               <p className="text-xs font-medium text-gray-900">Ticket #{index + 1}</p>
                               <p className="text-xs text-gray-500 mt-1">{ticketNumber}</p>
                             </div>

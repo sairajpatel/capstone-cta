@@ -3,7 +3,6 @@ const User = require('../models/userModel');
 const { Event } = require('../models/eventModel'); // Fix the import to destructure Event
 const Organizer = require('../models/organizerModel');
 const Booking = require('../models/bookingModel');
-const cloudinary = require('../config/cloudinary');
 const jwt = require('jsonwebtoken');
 
 // Generate JWT Token
@@ -109,22 +108,14 @@ exports.logout = async (req, res) => {
 };
 
 // Get admin profile
-exports.getAdminProfile = async (req, res) => {
+exports.getProfile = async (req, res) => {
     try {
         const admin = await Admin.findById(req.admin._id);
-        if (!admin) {
-            return res.status(404).json({
-                success: false,
-                message: 'Admin not found'
-            });
-        }
-
         res.status(200).json({
             success: true,
             data: admin
         });
     } catch (error) {
-        console.error('Error fetching admin profile:', error);
         res.status(500).json({
             success: false,
             message: error.message
@@ -133,85 +124,17 @@ exports.getAdminProfile = async (req, res) => {
 };
 
 // Update admin profile
-exports.updateAdminProfile = async (req, res) => {
+exports.updateProfile = async (req, res) => {
     try {
-        const { name, email, phone } = req.body;
-        const admin = await Admin.findById(req.admin._id);
-
-        if (!admin) {
-            return res.status(404).json({
-                success: false,
-                message: 'Admin not found'
-            });
-        }
-
-        if (name) admin.name = name;
-        if (email) admin.email = email;
-        if (phone) admin.phone = phone;
-
-        await admin.save();
-
+        const admin = await Admin.findByIdAndUpdate(req.admin._id, req.body, {
+            new: true,
+            runValidators: true
+        });
         res.status(200).json({
             success: true,
-            message: 'Profile updated successfully',
             data: admin
         });
     } catch (error) {
-        console.error('Error updating admin profile:', error);
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
-    }
-};
-
-// Upload admin profile photo
-exports.uploadProfilePhoto = async (req, res) => {
-    try {
-        const admin = await Admin.findById(req.admin._id);
-        if (!admin) {
-            return res.status(404).json({
-                success: false,
-                message: 'Admin not found'
-            });
-        }
-
-        // Delete old image from Cloudinary if it exists
-        if (admin.profilePhoto && admin.profilePhoto.includes('cloudinary')) {
-            try {
-                const publicId = admin.profilePhoto.split('/').pop().split('.')[0];
-                await cloudinary.uploader.destroy(`admin-profiles/${publicId}`);
-            } catch (error) {
-                console.log('Error deleting old profile photo:', error);
-            }
-        }
-
-        // Upload new image to Cloudinary
-        const uploadResult = await cloudinary.uploader.upload(req.body.image, {
-            folder: 'admin-profiles',
-            width: 500,
-            height: 500,
-            crop: "fill",
-            quality: "auto"
-        });
-
-        if (!uploadResult || !uploadResult.secure_url) {
-            throw new Error('Failed to upload image to Cloudinary');
-        }
-
-        // Update admin profile with new photo URL
-        admin.profilePhoto = uploadResult.secure_url;
-        await admin.save();
-
-        res.status(200).json({
-            success: true,
-            message: 'Profile photo updated successfully',
-            data: {
-                profilePhoto: uploadResult.secure_url
-            }
-        });
-    } catch (error) {
-        console.error('Error uploading profile photo:', error);
         res.status(500).json({
             success: false,
             message: error.message

@@ -4,14 +4,13 @@ const {
     registerAdmin,
     loginAdmin,
     logout,
-    getAdminProfile,
-    updateAdminProfile,
-    uploadProfilePhoto,
+    getProfile,
+    updateProfile,
     getDashboardStats,
     getUserStats,
     getRevenueStats
 } = require('../controllers/adminController');
-const { protect, restrictTo } = require('../middleware/auth');
+const { protect, restrictTo } = require('../middleware/authMiddleware');
 
 // Auth routes
 router.post('/register', registerAdmin);
@@ -19,9 +18,8 @@ router.post('/login', loginAdmin);
 router.post('/logout', protect, restrictTo('admin'), logout);
 
 // Profile routes
-router.get('/profile', protect, restrictTo('admin'), getAdminProfile);
-router.put('/profile', protect, restrictTo('admin'), updateAdminProfile);
-router.post('/profile/photo', protect, restrictTo('admin'), uploadProfilePhoto);
+router.get('/profile', protect, restrictTo('admin'), getProfile);
+router.put('/profile', protect, restrictTo('admin'), updateProfile);
 
 // Dashboard routes
 router.get('/dashboard/stats', protect, restrictTo('admin'), getDashboardStats);

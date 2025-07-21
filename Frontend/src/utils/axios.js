@@ -2,9 +2,26 @@ import axios from 'axios';
 import { store } from '../redux/store';
 import { logout } from '../redux/features/authSlice';
 
-const API_URL = process.env.NODE_ENV === 'production'
-  ? 'https://capstone-cta-duyw.vercel.app/api'
-  : 'http://localhost:5000/api';
+// Get the current hostname
+const hostname = window.location.hostname;
+
+// Determine the API URL based on the environment and hostname
+const getApiUrl = () => {
+  if (process.env.NODE_ENV === 'development') {
+    return 'http://localhost:5000/api';
+  }
+  
+  // For production
+  if (hostname.includes('vercel.app')) {
+    return `https://${hostname}/api`;
+  }
+  
+  // Default fallback
+  return 'https://capstone-cta-duyw.vercel.app/api';
+};
+
+const API_URL = getApiUrl();
+console.log('Using API URL:', API_URL); // Debug log
 
 const axiosInstance = axios.create({
   baseURL: API_URL,
@@ -12,7 +29,8 @@ const axiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
-  }
+  },
+  timeout: 10000 // 10 second timeout
 });
 
 // Add a request interceptor to include the token
@@ -25,29 +43,66 @@ axiosInstance.interceptors.request.use(
       config.headers.Authorization = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
     }
 
-    // Add CORS headers
-    config.headers['Access-Control-Allow-Credentials'] = true;
+    // Log request details in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Request:', {
+        url: config.url,
+        method: config.method,
+        headers: config.headers,
+        data: config.data
+      });
+    }
     
     return config;
   },
   (error) => {
+    console.error('Request Error:', error);
     return Promise.reject(error);
   }
 );
 
 // Add a response interceptor to handle errors
 axiosInstance.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Log response in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Response:', {
+        status: response.status,
+        data: response.data
+      });
+    }
+    return response;
+  },
   (error) => {
-    console.error('API Error:', error.response?.data || error.message);
+    // Handle network errors
+    if (!error.response) {
+      console.error('Network Error:', error.message);
+      console.error('Error Details:', {
+        message: error.message,
+        code: error.code,
+        stack: error.stack
+      });
+      return Promise.reject({
+        ...error,
+        message: 'Network error. Please check your connection and try again.'
+      });
+    }
+
+    // Handle response errors
+    console.error('API Error:', {
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message
+    });
     
     if (error.response?.status === 401) {
       store.dispatch(logout());
       const currentPath = window.location.pathname;
       if (!currentPath.includes('/login') && !currentPath.includes('/admin/login')) {
-        window.location.href = '/admin/login';
+        window.location.href = '/login';
       }
     }
+
     return Promise.reject(error);
   }
 );

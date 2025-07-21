@@ -29,25 +29,25 @@ exports.protect = async (req, res, next) => {
             // Verify token
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-            // Check if user is admin or organizer based on role in token
+            // Check user role and set appropriate user object
             if (decoded.role === 'admin') {
-                req.admin = await Admin.findById(decoded.id);
-                if (!req.admin) {
-                    return res.status(401).json({
-                        success: false,
-                        message: 'Not authorized to access this route'
-                    });
-                }
+                req.user = await Admin.findById(decoded.id);
             } else if (decoded.role === 'organizer') {
-                req.organizer = await Organizer.findById(decoded.id);
-                if (!req.organizer) {
-                    return res.status(401).json({
-                        success: false,
-                        message: 'Not authorized to access this route'
-                    });
-                }
+                req.user = await Organizer.findById(decoded.id);
+            } else if (decoded.role === 'user') {
+                req.user = await User.findById(decoded.id);
             }
 
+            // Check if user exists
+            if (!req.user) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'User not found or not authorized'
+                });
+            }
+
+            // Add role to request object
+            req.userRole = decoded.role;
             next();
         } catch (err) {
             console.error('Token verification error:', err);
@@ -68,16 +68,7 @@ exports.protect = async (req, res, next) => {
 // Restrict to certain roles
 exports.restrictTo = (...roles) => {
     return (req, res, next) => {
-        let userRole;
-        
-        // Check if user is admin or organizer
-        if (req.admin) {
-            userRole = 'admin';
-        } else if (req.organizer) {
-            userRole = 'organizer';
-        }
-
-        if (!roles.includes(userRole)) {
+        if (!roles.includes(req.userRole)) {
             return res.status(403).json({
                 success: false,
                 message: 'Not authorized to access this route'

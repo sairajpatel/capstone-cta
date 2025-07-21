@@ -6,7 +6,7 @@ import BookingConfirmation from './BookingConfirmation';
 
 const BookingForm = ({ event, onClose }) => {
   const navigate = useNavigate();
-  const user = useSelector((state) => state.auth.user);
+  const { user, token } = useSelector((state) => state.auth);
   const [formData, setFormData] = useState({
     ticketType: event.ticketing[0]?.name || '',
     quantity: 1
@@ -31,7 +31,7 @@ const BookingForm = ({ event, onClose }) => {
     e.preventDefault();
     
     // Check if user is logged in
-    if (!user) {
+    if (!user || !token) {
       navigate('/user/login?redirect=' + window.location.pathname);
       return;
     }
@@ -40,9 +40,11 @@ const BookingForm = ({ event, onClose }) => {
     setError('');
 
     try {
+      // Set authorization header
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
       const response = await axios.post('/bookings', {
         eventId: event._id,
-        userId: user._id, // Add user ID explicitly
         ticketType: formData.ticketType,
         quantity: parseInt(formData.quantity),
         totalAmount: totalAmount
@@ -55,6 +57,10 @@ const BookingForm = ({ event, onClose }) => {
       }
     } catch (err) {
       console.error('Booking error:', err);
+      if (err.response?.status === 401) {
+        navigate('/user/login?redirect=' + window.location.pathname);
+        return;
+      }
       const errorMessage = err.response?.data?.error || err.response?.data?.message || 'Error creating booking';
       setError(errorMessage);
     } finally {

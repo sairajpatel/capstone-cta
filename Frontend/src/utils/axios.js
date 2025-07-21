@@ -11,7 +11,8 @@ const axiosInstance = axios.create({
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
-  },
+    'Accept': 'application/json'
+  }
 });
 
 // Add a request interceptor to include the token
@@ -24,10 +25,9 @@ axiosInstance.interceptors.request.use(
       config.headers.Authorization = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
     }
 
-    // Handle file uploads and JSON data
-    if (config.data && config.data.image) {
-      config.headers['Content-Type'] = 'application/json';
-    }
+    // Add CORS headers for all requests
+    config.headers['Access-Control-Allow-Origin'] = '*';
+    config.headers['Access-Control-Allow-Methods'] = 'GET,PUT,POST,DELETE,PATCH,OPTIONS';
 
     return config;
   },
@@ -46,7 +46,7 @@ axiosInstance.interceptors.response.use(
       store.dispatch(logout());
       const currentPath = window.location.pathname;
       if (!currentPath.includes('/login') && !currentPath.includes('/admin/login')) {
-        window.location.href = '/admin/login';
+        window.location.href = '/user/login';
       }
     }
     return Promise.reject(error);

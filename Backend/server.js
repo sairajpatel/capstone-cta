@@ -37,12 +37,33 @@ const corsOptions = {
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
     exposedHeaders: ['Set-Cookie'],
+    preflightContinue: false,
+    optionsSuccessStatus: 204
 };
 
 app.use(cors(corsOptions));
 
+// Handle preflight requests
+app.options('*', cors(corsOptions));
+
 // Trust proxy (needed for secure cookies on Vercel)
 app.set('trust proxy', 1);
+
+// Routes
+const authRoutes = require('./routes/authRoutes');
+const eventRoutes = require('./routes/eventRoutes');
+const organizerRoutes = require('./routes/organizerRoutes');
+const adminRoutes = require('./routes/adminRoutes');
+const profileRoutes = require('./routes/profileRoutes');
+const bookingRoutes = require('./routes/bookingRoutes');
+
+// Mount routes
+app.use('/api/auth', authRoutes);
+app.use('/api/events', eventRoutes);
+app.use('/api/organizer', organizerRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/profile', profileRoutes);
+app.use('/api/bookings', bookingRoutes);
 
 // Connect to MongoDB
 const connectDB = async () => {
@@ -60,21 +81,6 @@ const connectDB = async () => {
 
 connectDB();
 
-const authRoutes = require('./routes/authRoutes');
-const eventRoutes = require('./routes/eventRoutes');
-const organizerRoutes = require('./routes/organizerRoutes');
-const adminRoutes = require('./routes/adminRoutes');
-const profileRoutes = require('./routes/profileRoutes');
-const bookingRoutes = require('./routes/bookingRoutes');
-
-// Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/events', eventRoutes);
-app.use('/api/organizer', organizerRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api/profile', profileRoutes);
-app.use('/api/bookings', bookingRoutes);
-
 // 404 handler
 app.use((req, res) => {
     res.status(404).json({
@@ -86,6 +92,14 @@ app.use((req, res) => {
 // Error handling middleware
 app.use((err, req, res, next) => {
     console.error('Error:', err);
+    
+    // Handle CORS errors
+    if (err.message === 'Not allowed by CORS') {
+        return res.status(403).json({
+            success: false,
+            message: 'CORS policy violation'
+        });
+    }
     
     // Handle specific errors
     if (err.name === 'ValidationError') {

@@ -316,7 +316,7 @@ const ExploreEvents = () => {
                           <span className="text-sm">
                             {event.eventType === 'free' ? 'Free' : (
                               event.ticketing && event.ticketing.length > 0
-                                ? `From ₹${Math.min(...event.ticketing.map(t => t.price))}`
+                                ? `From $${Math.min(...event.ticketing.map(t => t.price))}`
                                 : 'Tickets not available'
                             )}
                           </span>

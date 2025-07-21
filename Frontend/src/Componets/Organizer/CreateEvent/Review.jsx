@@ -131,7 +131,7 @@ const Review = () => {
                           {ticket.quantity} tickets available
                         </span>
                       </div>
-                      <span className="font-medium">₹{ticket.price}</span>
+                      <span className="font-medium">${ticket.price}</span>
                     </div>
                   ))}
                 </div>

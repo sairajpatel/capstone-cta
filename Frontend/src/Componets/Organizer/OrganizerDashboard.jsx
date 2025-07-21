@@ -189,8 +189,8 @@ const OrganizerDashboard = () => {
                             const pricing = getLowestAndHighestPrice(event.ticketing);
                             if (!pricing) return 'Pricing not set';
                             return pricing.lowest === pricing.highest
-                              ? `₹${pricing.lowest}`
-                              : `₹${pricing.lowest} - ₹${pricing.highest}`;
+                              ? `$${pricing.lowest}`
+: `$${pricing.lowest} - $${pricing.highest}`;
                           })()
                         )}
                       </span>

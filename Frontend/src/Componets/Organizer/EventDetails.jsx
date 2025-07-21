@@ -181,7 +181,7 @@ const EventDetails = () => {
                       <div key={index} className="bg-gray-50 p-4 rounded-lg">
                         <div className="flex justify-between items-center">
                           <h3 className="font-medium">{ticket.name}</h3>
-                          <span className="text-lg font-semibold">₹{ticket.price}</span>
+                          <span className="text-lg font-semibold">${ticket.price}</span>
                         </div>
                         <div className="mt-2 text-sm text-gray-600">
                           Available Tickets: {ticket.quantity}

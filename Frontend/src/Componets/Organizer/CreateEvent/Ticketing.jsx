@@ -136,7 +136,7 @@ const Ticketing = () => {
                       Price
                     </label>
                     <div className="relative">
-                      <span className="absolute left-3 top-2.5">₹</span>
+                      <span className="absolute left-3 top-2.5">$</span>
                       <input
                         type="number"
                         value={ticket.price}

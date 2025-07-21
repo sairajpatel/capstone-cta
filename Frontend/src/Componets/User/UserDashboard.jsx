@@ -290,7 +290,7 @@ const EventSection = ({ title, events = [], formatDate, navigate }) => {
                   <h3 className="font-semibold text-lg mb-1 text-white">{event.title}</h3>
                   <p className="text-sm text-gray-400 mb-2">{event.organizer?.organization || 'Event Organizer'}</p>
                   <div className="flex items-center justify-between text-sm text-gray-400">
-                    <span>{event.eventType === 'ticketed' && event.ticketing && event.ticketing[0] ? `₹${event.ticketing[0].price}` : 'Free'}</span>
+                    <span>{event.eventType === 'ticketed' && event.ticketing && event.ticketing[0] ? `$${event.ticketing[0].price}` : 'Free'}</span>
                     <span>★ {interestedEvents[event._id] ? 'Interested' : 'Not interested'}</span>
                   </div>
                 </div>

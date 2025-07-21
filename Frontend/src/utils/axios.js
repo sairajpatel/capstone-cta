@@ -2,7 +2,7 @@ import axios from 'axios';
 import { store } from '../redux/store';
 import { logout } from '../redux/features/authSlice';
 
-const API_URL = process.env.NODE_ENV === 'production' 
+const API_URL = process.env.NODE_ENV === 'production'
   ? 'https://capstone-cta-duyw.vercel.app/api'
   : 'http://localhost:5000/api';
 
@@ -11,7 +11,8 @@ const axiosInstance = axios.create({
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
-  },
+    'Accept': 'application/json'
+  }
 });
 
 // Add a request interceptor to include the token
@@ -24,11 +25,9 @@ axiosInstance.interceptors.request.use(
       config.headers.Authorization = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
     }
 
-    // Handle file uploads and JSON data
-    if (config.data && config.data.image) {
-      config.headers['Content-Type'] = 'application/json';
-    }
-
+    // Add CORS headers
+    config.headers['Access-Control-Allow-Credentials'] = true;
+    
     return config;
   },
   (error) => {

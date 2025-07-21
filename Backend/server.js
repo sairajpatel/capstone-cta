@@ -15,50 +15,67 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cookieParser());
 
 // CORS configuration
-const corsOptions = {
-    origin: function (origin, callback) {
-        const allowedOrigins = [
-            'http://localhost:5173',
-            'http://localhost:5174',
-            'https://capstone-cta-duyw.vercel.app',
-            'https://capstone-cta.vercel.app'
-        ];
-        
-        // Allow requests with no origin (like mobile apps or curl requests)
-        if (!origin) return callback(null, true);
-        
-        if (allowedOrigins.indexOf(origin) !== -1) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
-    exposedHeaders: ['Set-Cookie'],
-};
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'https://capstone-cta-duyw.vercel.app',
+  'https://capstone-cta.vercel.app'
+];
 
-app.use(cors(corsOptions));
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log('Origin not allowed by CORS:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  exposedHeaders: ['Set-Cookie'],
+}));
 
 // Trust proxy (needed for secure cookies on Vercel)
 app.set('trust proxy', 1);
 
+// Add security headers
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,UPDATE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept, Authorization');
+  next();
+});
+
+// Handle preflight requests
+app.options('*', cors());
+
 // Connect to MongoDB
 const connectDB = async () => {
-    try {
-        await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/gatherguru', {
-            useNewUrlParser: true,
-            useUnifiedTopology: true
-        });
-        console.log('MongoDB Connected');
-    } catch (err) {
-        console.error('MongoDB connection error:', err);
-        process.exit(1);
-    }
+  try {
+    await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/gatherguru', {
+      useNewUrlParser: true,
+      useUnifiedTopology: true
+    });
+    console.log('MongoDB Connected');
+  } catch (err) {
+    console.error('MongoDB connection error:', err);
+    process.exit(1);
+  }
 };
 
 connectDB();
+
+// Debug middleware to log requests
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  console.log('Headers:', req.headers);
+  next();
+});
 
 const authRoutes = require('./routes/authRoutes');
 const eventRoutes = require('./routes/eventRoutes');
@@ -77,38 +94,46 @@ app.use('/api/bookings', bookingRoutes);
 
 // 404 handler
 app.use((req, res) => {
-    res.status(404).json({
-        success: false,
-        message: `Route ${req.originalUrl} not found`
-    });
+  res.status(404).json({
+    success: false,
+    message: `Route ${req.originalUrl} not found`
+  });
 });
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-    console.error('Error:', err);
-    
-    // Handle specific errors
-    if (err.name === 'ValidationError') {
-        return res.status(400).json({
-            success: false,
-            message: 'Validation Error',
-            errors: Object.values(err.errors).map(e => e.message)
-        });
-    }
-    
-    if (err.name === 'CastError') {
-        return res.status(400).json({
-            success: false,
-            message: 'Invalid ID format'
-        });
-    }
-    
-    // Generic error response
-    res.status(err.status || 500).json({
-        success: false,
-        message: err.message || 'Something went wrong!',
-        ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+  console.error('Error:', err);
+  
+  // Handle CORS errors
+  if (err.message === 'Not allowed by CORS') {
+    return res.status(403).json({
+      success: false,
+      message: 'CORS error: Origin not allowed'
     });
+  }
+  
+  // Handle specific errors
+  if (err.name === 'ValidationError') {
+    return res.status(400).json({
+      success: false,
+      message: 'Validation Error',
+      errors: Object.values(err.errors).map(e => e.message)
+    });
+  }
+  
+  if (err.name === 'CastError') {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid ID format'
+    });
+  }
+  
+  // Generic error response
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || 'Something went wrong!',
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+  });
 });
 
 const PORT = process.env.PORT || 5000;

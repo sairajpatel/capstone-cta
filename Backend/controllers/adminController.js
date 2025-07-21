@@ -2,6 +2,7 @@ const Admin = require('../models/adminModel');
 const User = require('../models/userModel');
 const { Event } = require('../models/eventModel'); // Fix the import to destructure Event
 const Organizer = require('../models/organizerModel');
+const Booking = require('../models/bookingModel');
 const jwt = require('jsonwebtoken');
 
 // Generate JWT Token
@@ -145,27 +146,18 @@ exports.updateProfile = async (req, res) => {
 exports.getDashboardStats = async (req, res) => {
     try {
         const totalEvents = await Event.countDocuments();
-        const activeUsers = await User.countDocuments();
+        const activeUsers = await User.countDocuments({ status: 'active' });
         const totalOrganizers = await Organizer.countDocuments();
         
-        // Calculate total revenue and tickets sold
-        const events = await Event.find({
-            status: 'published',
-            eventType: 'ticketed'
-        }).select('ticketing');
+        // Calculate total revenue and tickets sold from confirmed bookings
+        const bookings = await Booking.find({ status: 'confirmed' });
         
         let totalRevenue = 0;
         let totalTicketsSold = 0;
         
-        events.forEach(event => {
-            if (event.ticketing && event.ticketing.length > 0) {
-                event.ticketing.forEach(ticket => {
-                    // Assuming sold tickets is the difference between total and available
-                    const soldTickets = ticket.quantity || 0;
-                    totalTicketsSold += soldTickets;
-                    totalRevenue += soldTickets * ticket.price;
-                });
-            }
+        bookings.forEach(booking => {
+            totalRevenue += booking.totalAmount;
+            totalTicketsSold += booking.quantity;
         });
 
         res.status(200).json({
@@ -216,34 +208,26 @@ exports.getUserStats = async (req, res) => {
 // Get revenue stats
 exports.getRevenueStats = async (req, res) => {
     try {
-        const events = await Event.find({
-            status: 'published',
-            eventType: 'ticketed'
-        }).select('ticketing createdAt');
+        const bookings = await Booking.find({ 
+            status: 'confirmed',
+            createdAt: { 
+                $gte: new Date(new Date().getFullYear(), 0, 1) // Start of current year
+            }
+        }).sort('createdAt');
 
-        // Calculate monthly revenue
+        // Calculate monthly revenue from bookings
         const monthlyRevenue = {};
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         
-        events.forEach(event => {
-            const month = months[new Date(event.createdAt).getMonth()];
-            let eventRevenue = 0;
-
-            if (event.ticketing && event.ticketing.length > 0) {
-                event.ticketing.forEach(ticket => {
-                    // Assuming sold tickets is the difference between total and available
-                    const soldTickets = ticket.quantity || 0;
-                    eventRevenue += soldTickets * ticket.price;
-                });
-            }
-            
-            monthlyRevenue[month] = (monthlyRevenue[month] || 0) + eventRevenue;
+        bookings.forEach(booking => {
+            const month = months[new Date(booking.createdAt).getMonth()];
+            monthlyRevenue[month] = (monthlyRevenue[month] || 0) + booking.totalAmount;
         });
 
         // Convert to array format for frontend
-        const monthly = Object.entries(monthlyRevenue).map(([month, value]) => ({
+        const monthly = months.map(month => ({
             month,
-            value
+            value: monthlyRevenue[month] || 0
         }));
 
         // Calculate total revenue

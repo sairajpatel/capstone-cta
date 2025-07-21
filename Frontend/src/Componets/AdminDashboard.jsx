@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
-  BarChart, Bar, ResponsiveContainer
+  ResponsiveContainer
 } from 'recharts';
 import AdminNavbar from './Navbar/AdminNavbar';
 import { fetchDashboardStats, fetchUserStats, fetchRevenueStats, fetchUpcomingEvents } from '../utils/adminApi';
@@ -16,7 +16,7 @@ const formatEventDateTime = (date, time) => {
     month: 'short',
     day: 'numeric'
   });
-  return `${formattedDate} at ${time}`;
+  return time ? `${formattedDate} at ${time}` : formattedDate;
 };
 
 export default function AdminDashboard() {
@@ -32,24 +32,23 @@ export default function AdminDashboard() {
     const loadDashboardData = async () => {
       try {
         setLoading(true);
-        const [stats, userStats, revenueStats, upcoming] = await Promise.all([
+        const [stats, revenueStats, upcoming] = await Promise.all([
           fetchDashboardStats(),
-          fetchUserStats(),
           fetchRevenueStats(),
           fetchUpcomingEvents()
         ]);
 
         // Format KPI stats
         const kpiStats = [
-          { label: 'Total Events', value: stats.events.total },
-          { label: 'Active Users', value: userStats.active },
-          { label: 'Revenue', value: `$${revenueStats.total.toLocaleString()}` },
-          { label: 'Tickets Sold', value: stats.events.ticketsSold }
+          { label: 'Total Events', value: stats.data.events.total },
+          { label: 'Active Users', value: stats.data.users.total },
+          { label: 'Revenue', value: `$${stats.data.revenue.toLocaleString()}` },
+          { label: 'Tickets Sold', value: stats.data.events.ticketsSold }
         ];
 
         setDashboardData({
           kpiStats,
-          revenueData: revenueStats.monthly,
+          revenueData: revenueStats.data.monthly,
           upcomingEvents: upcoming.data || []
         });
       } catch (err) {
@@ -101,8 +100,14 @@ export default function AdminDashboard() {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="month" />
               <YAxis />
-              <Tooltip />
-              <Line type="monotone" dataKey="value" stroke="#2B293D" strokeWidth={2} />
+              <Tooltip formatter={(value) => `$${value.toLocaleString()}`} />
+              <Line 
+                type="monotone" 
+                dataKey="value" 
+                stroke="#2B293D" 
+                strokeWidth={2}
+                name="Revenue"
+              />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -144,7 +149,7 @@ export default function AdminDashboard() {
                       <td className="py-4 px-4">
                         <div className="flex items-center">
                           <span className={`inline-block w-2 h-2 rounded-full mr-3 ${
-                            ['bg-green-500', 'bg-yellow-500', 'bg-blue-500'][idx % 3]
+                            event.status === 'published' ? 'bg-green-500' : 'bg-yellow-500'
                           }`}></span>
                           <div>
                             <div className="font-medium text-gray-900">{event.title}</div>

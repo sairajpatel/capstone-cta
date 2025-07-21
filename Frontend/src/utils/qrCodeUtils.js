@@ -1,21 +1,11 @@
 // QR Code utility functions
 export const generateTicketQRData = (booking, ticketNumber) => {
-  // Create a professional, readable text format for QR code scanning
-  const ticketInfo = `
-Event: ${booking.event.title}
-Date: ${new Date(booking.event.startDate).toLocaleDateString()}
-Time: ${booking.event.startTime || 'TBA'}
-Location: ${booking.event.location}
-------------------
-Ticket Type: ${booking.ticketType}
-Ticket #: ${ticketNumber}
-Status: Confirmed
-------------------
-This ticket is non-transferable.
-Powered by GatherGuru
-`;
+  // Generate a verification URL
+  const baseUrl = window.location.origin;
+  const verificationUrl = `${baseUrl}/verify-ticket/${booking._id}/${ticketNumber}`;
   
-  return ticketInfo.trim();
+  // Return the verification URL directly - this makes the QR code scannable and directs to the verification page
+  return verificationUrl;
 };
 
 export const parseTicketQRData = (qrData) => {

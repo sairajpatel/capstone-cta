@@ -34,12 +34,20 @@ const UserEventDetails = () => {
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+    try {
+      if (!dateString) return 'Date not available';
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'Date not available';
+      return new Date(dateString).toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    } catch (error) {
+      console.error('Date formatting error:', error);
+      return 'Date not available';
+    }
   };
 
   if (loading) {
@@ -113,7 +121,7 @@ const UserEventDetails = () => {
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Date and Time</p>
-                      <p className="font-semibold">{formatDate(event.date)}</p>
+                      <p className="font-semibold">{formatDate(event.startDate)}</p>
                       <p className="text-gray-600">{event.startTime} {event.endTime && `- ${event.endTime}`}</p>
                     </div>
                   </div>

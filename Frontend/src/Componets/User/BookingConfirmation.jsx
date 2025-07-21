@@ -2,6 +2,19 @@ import React from 'react';
 import { format } from 'date-fns';
 
 const BookingConfirmation = ({ booking, onClose, onViewBookings }) => {
+  // Format date safely with a fallback
+  const formatEventDate = (dateString) => {
+    try {
+      if (!dateString) return 'Date not available';
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'Date not available';
+      return format(date, 'EEEE, MMMM d, yyyy');
+    } catch (error) {
+      console.error('Date formatting error:', error);
+      return 'Date not available';
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4 overflow-hidden">
@@ -22,7 +35,7 @@ const BookingConfirmation = ({ booking, onClose, onViewBookings }) => {
             <div>
               <h3 className="text-xl font-semibold text-gray-900">{booking.event.title}</h3>
               <p className="text-gray-600">
-                {format(new Date(booking.event.date), 'EEEE, MMMM d, yyyy')}
+                {formatEventDate(booking.event.startDate)}
               </p>
             </div>
 

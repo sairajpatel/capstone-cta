@@ -43,6 +43,18 @@ const UserBookings = () => {
     }
   };
 
+  const formatEventDate = (dateString) => {
+    try {
+      if (!dateString) return 'Date not available';
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'Date not available';
+      return format(date, 'PPP');
+    } catch (error) {
+      console.error('Date formatting error:', error);
+      return 'Date not available';
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -104,7 +116,7 @@ const UserBookings = () => {
                   <div className="space-y-2 text-gray-600">
                     <p>
                       <span className="font-medium">Date: </span>
-                      {format(new Date(booking.event.date), 'PPP')}
+                      {formatEventDate(booking.event.startDate)}
                     </p>
                     <p>
                       <span className="font-medium">Ticket Type: </span>
@@ -132,7 +144,7 @@ const UserBookings = () => {
                     <p className="font-medium">Ticket Numbers:</p>
                     <div className="bg-gray-50 p-2 rounded">
                       {booking.ticketNumbers.map(number => (
-                        <div key={number} className="text-sm text-gray-600">
+                        <div key={number} className="text-sm text-gray-600 font-mono">
                           {number}
                         </div>
                       ))}

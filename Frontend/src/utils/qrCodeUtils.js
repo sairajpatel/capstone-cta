@@ -1,10 +1,10 @@
 // QR Code utility functions
 export const generateTicketQRData = (booking, ticketNumber) => {
-  // Generate a verification URL
+  // Generate a URL that will direct to ticket verification page
   const baseUrl = window.location.origin;
   const verificationUrl = `${baseUrl}/verify-ticket/${booking._id}/${ticketNumber}`;
   
-  // Return the verification URL directly - this makes the QR code scannable and directs to the verification page
+  // Return just the URL for cleaner QR codes
   return verificationUrl;
 };
 

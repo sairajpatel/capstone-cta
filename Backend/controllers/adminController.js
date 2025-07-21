@@ -145,8 +145,13 @@ exports.updateProfile = async (req, res) => {
 // Get dashboard stats
 exports.getDashboardStats = async (req, res) => {
     try {
+        // Get total events
         const totalEvents = await Event.countDocuments();
+        
+        // Get active users
         const activeUsers = await User.countDocuments({ status: 'active' });
+        
+        // Get total organizers
         const totalOrganizers = await Organizer.countDocuments();
         
         // Calculate total revenue and tickets sold from confirmed bookings
@@ -160,6 +165,7 @@ exports.getDashboardStats = async (req, res) => {
             totalTicketsSold += booking.quantity;
         });
 
+        // Send response with proper structure
         res.status(200).json({
             success: true,
             data: {

@@ -386,16 +386,28 @@ exports.getAllEvents = async (req, res) => {
                     query.eventType = 'free';
                     break;
                 case 'under25':
-                    query.eventType = 'paid';
-                    query['ticketing.price'] = { $lt: 25 };
+                    query.eventType = 'ticketed';
+                    query['ticketing'] = {
+                        $elemMatch: {
+                            price: { $lt: 25 }
+                        }
+                    };
                     break;
                 case '25-50':
-                    query.eventType = 'paid';
-                    query['ticketing.price'] = { $gte: 25, $lte: 50 };
+                    query.eventType = 'ticketed';
+                    query['ticketing'] = {
+                        $elemMatch: {
+                            price: { $gte: 25, $lte: 50 }
+                        }
+                    };
                     break;
                 case 'above50':
-                    query.eventType = 'paid';
-                    query['ticketing.price'] = { $gt: 50 };
+                    query.eventType = 'ticketed';
+                    query['ticketing'] = {
+                        $elemMatch: {
+                            price: { $gt: 50 }
+                        }
+                    };
                     break;
             }
         }
@@ -453,14 +465,6 @@ exports.getAllEvents = async (req, res) => {
         }
 
         console.log('MongoDB query:', JSON.stringify(query, null, 2));
-
-        // First, let's check how many events exist in total
-        const totalEvents = await Event.countDocuments();
-        console.log('Total events in database:', totalEvents);
-
-        // Then check how many published events exist
-        const publishedEvents = await Event.countDocuments({ status: 'published' });
-        console.log('Total published events:', publishedEvents);
 
         // Now get the filtered events
         const events = await Event.find(query)

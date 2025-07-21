@@ -16,9 +16,7 @@ const {
     getAllEvents,
     getUpcomingEvents,
     getAdminUpcomingEvents,
-    getAdminPastEvents,
-    editEvent,
-    getEventForEditing
+    getAdminPastEvents
 } = require('../controllers/eventController');
 
 // Public routes (no authentication required)
@@ -28,7 +26,7 @@ router.get('/category/:category', getEventsByCategory);
 router.get('/search', searchEvents);
 router.get('/all', getAllEvents);
 router.get('/upcoming', getUpcomingEvents);
-router.get('/:eventId', getEventDetails);
+router.get('/:eventId', getEventDetails); // Add route to get event details
 
 // Admin routes
 router.get('/admin/upcoming', getAdminUpcomingEvents);
@@ -44,9 +42,5 @@ router.patch('/:eventId/banner', updateEventBanner);
 router.patch('/:eventId/ticketing', updateEventTicketing);
 router.patch('/:eventId/publish', publishEvent);
 router.get('/organizer/events', getOrganizerEvents);
-
-// New edit routes
-router.get('/edit/:eventId', getEventForEditing);
-router.put('/:eventId', editEvent);
 
 module.exports = router; 

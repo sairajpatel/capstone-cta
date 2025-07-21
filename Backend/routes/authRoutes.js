@@ -27,9 +27,9 @@ router.get('/organizer/logout', protect, organizerLogout);
 router.get('/organizer/profile', protect, getOrganizerProfile);
 
 // User routes
-router.post('/user/register', registerUser);
-router.post('/user/login', userLogin);
-router.get('/user/logout', protect, userLogout);
-router.get('/user/profile', protect, getUserProfile);
+router.post('/register', registerUser); // Changed from /user/register
+router.post('/login', userLogin);       // Changed from /user/login
+router.get('/logout', protect, userLogout); // Changed from /user/logout
+router.get('/profile', protect, getUserProfile); // Changed from /user/profile
 
 module.exports = router; 

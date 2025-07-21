@@ -18,8 +18,13 @@ const UserEventDetails = () => {
   const fetchEventDetails = async () => {
     try {
       const response = await axios.get(`/events/${eventId}`);
-      setEvent(response.data.data);
+      if (response.data.success) {
+        setEvent(response.data.data);
+      } else {
+        setError('Failed to fetch event details');
+      }
     } catch (err) {
+      console.error('Error fetching event:', err);
       setError(err.response?.data?.message || 'Failed to fetch event details');
     } finally {
       setLoading(false);

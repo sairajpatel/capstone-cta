@@ -38,22 +38,30 @@ const bookingSchema = new mongoose.Schema({
     required: true
   }]
 }, {
-  timestamps: true
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
 });
 
 // Generate unique ticket numbers
 bookingSchema.pre('save', async function(next) {
   if (this.isNew) {
     const ticketNumbers = [];
+    const timestamp = Date.now();
+    const eventId = this.event.toString().slice(-6); // Get last 6 characters of event ID
+    
     for (let i = 0; i < this.quantity; i++) {
       // Generate a unique ticket number: EVENT-TIMESTAMP-SEQUENTIAL
-      const ticketNumber = `${this.event}-${Date.now()}-${i + 1}`;
+      const ticketNumber = `${eventId}-${timestamp}-${(i + 1).toString().padStart(3, '0')}`;
       ticketNumbers.push(ticketNumber);
     }
     this.ticketNumbers = ticketNumbers;
   }
   next();
 });
+
+// Add index for faster queries
+bookingSchema.index({ user: 1, event: 1 });
 
 const Booking = mongoose.model('Booking', bookingSchema);
 

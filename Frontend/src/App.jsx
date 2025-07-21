@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, BrowserRouter as Router } from 'react-router-dom';
 import React from "react";
 import { Toaster } from 'react-hot-toast';
 import AdminLogin from "./pages/AdminLogin";
@@ -30,7 +30,7 @@ import UserBookings from './Componets/User/UserBookings';
 
 function App() {
   return (
-    <>
+    <Router>
       <Toaster position="top-right" />
       <Routes>
         {/* Root Route - User Login */}
@@ -80,7 +80,7 @@ function App() {
         />
 
         {/* Admin Routes */}
-        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin-login" element={<AdminLogin />} />
         <Route path="/admin/dashboard" element={<AdminProtectWrapper><AdminDashboard /></AdminProtectWrapper>} />
         <Route path="/admin/events" element={<AdminProtectWrapper><AdminEventList /></AdminProtectWrapper>} />
         <Route path="/admin/users" element={<AdminProtectWrapper><AdminUserList /></AdminProtectWrapper>} />
@@ -89,7 +89,7 @@ function App() {
         {/* Catch all - Redirect to User Login */}
         <Route path="*" element={<UserLogin />} />
       </Routes>
-    </>
+    </Router>
   );
 }
 

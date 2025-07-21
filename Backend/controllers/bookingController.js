@@ -5,18 +5,40 @@ const Event = require('../models/eventModel');
 exports.createBooking = async (req, res) => {
   try {
     const { eventId, ticketType, quantity } = req.body;
-    const userId = req.user._id;
+    const userId = req.user._id; // Get user ID from authenticated request
+
+    // Validate required fields
+    if (!eventId || !ticketType || !quantity) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide all required fields'
+      });
+    }
 
     // Find the event
     const event = await Event.findById(eventId);
     if (!event) {
-      return res.status(404).json({ success: false, message: 'Event not found' });
+      return res.status(404).json({
+        success: false,
+        message: 'Event not found'
+      });
     }
 
     // Find the ticket type and calculate total amount
     const selectedTicket = event.ticketing.find(ticket => ticket.name === ticketType);
     if (!selectedTicket) {
-      return res.status(404).json({ success: false, message: 'Ticket type not found' });
+      return res.status(404).json({
+        success: false,
+        message: 'Ticket type not found'
+      });
+    }
+
+    // Check if enough tickets are available
+    if (selectedTicket.quantity < quantity) {
+      return res.status(400).json({
+        success: false,
+        message: 'Not enough tickets available'
+      });
     }
 
     // Calculate total amount
@@ -31,9 +53,15 @@ exports.createBooking = async (req, res) => {
       totalAmount
     });
 
+    // Update ticket quantity
+    selectedTicket.quantity -= quantity;
+    await event.save();
+
     // Populate event and user details
-    await booking.populate('event');
-    await booking.populate('user', 'name email');
+    await booking.populate([
+      { path: 'event', select: 'title date location bannerImage' },
+      { path: 'user', select: 'name email' }
+    ]);
 
     res.status(201).json({
       success: true,
@@ -55,7 +83,7 @@ exports.getUserBookings = async (req, res) => {
   try {
     const userId = req.user._id;
     const bookings = await Booking.find({ user: userId })
-      .populate('event')
+      .populate('event', 'title date location bannerImage')
       .sort('-createdAt');
 
     res.status(200).json({
@@ -63,6 +91,7 @@ exports.getUserBookings = async (req, res) => {
       data: bookings
     });
   } catch (error) {
+    console.error('Error fetching bookings:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching bookings',
@@ -75,7 +104,7 @@ exports.getUserBookings = async (req, res) => {
 exports.getBookingDetails = async (req, res) => {
   try {
     const booking = await Booking.findById(req.params.bookingId)
-      .populate('event')
+      .populate('event', 'title date location bannerImage')
       .populate('user', 'name email');
 
     if (!booking) {
@@ -98,6 +127,7 @@ exports.getBookingDetails = async (req, res) => {
       data: booking
     });
   } catch (error) {
+    console.error('Error fetching booking details:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching booking details',
@@ -126,6 +156,16 @@ exports.cancelBooking = async (req, res) => {
       });
     }
 
+    // Return tickets to event quantity
+    const event = await Event.findById(booking.event);
+    if (event) {
+      const ticketType = event.ticketing.find(t => t.name === booking.ticketType);
+      if (ticketType) {
+        ticketType.quantity += booking.quantity;
+        await event.save();
+      }
+    }
+
     booking.status = 'cancelled';
     await booking.save();
 
@@ -135,6 +175,7 @@ exports.cancelBooking = async (req, res) => {
       data: booking
     });
   } catch (error) {
+    console.error('Error cancelling booking:', error);
     res.status(500).json({
       success: false,
       message: 'Error cancelling booking',

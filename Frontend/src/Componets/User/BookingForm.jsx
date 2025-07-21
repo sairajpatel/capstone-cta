@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import axios from '../../utils/axios';
 import BookingConfirmation from './BookingConfirmation';
 
 const BookingForm = ({ event, onClose }) => {
   const navigate = useNavigate();
+  const user = useSelector((state) => state.auth.user);
   const [formData, setFormData] = useState({
     ticketType: event.ticketing[0]?.name || '',
     quantity: 1
@@ -27,23 +29,34 @@ const BookingForm = ({ event, onClose }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Check if user is logged in
+    if (!user) {
+      navigate('/user/login?redirect=' + window.location.pathname);
+      return;
+    }
+
     setLoading(true);
     setError('');
 
     try {
       const response = await axios.post('/bookings', {
         eventId: event._id,
-        ...formData
+        userId: user._id, // Add user ID explicitly
+        ticketType: formData.ticketType,
+        quantity: parseInt(formData.quantity),
+        totalAmount: totalAmount
       });
 
       if (response.data.success) {
         setBookingConfirmation(response.data.data);
       } else {
-        setError('Booking failed. Please try again.');
+        setError(response.data.message || 'Booking failed. Please try again.');
       }
     } catch (err) {
       console.error('Booking error:', err);
-      setError(err.response?.data?.message || 'Error creating booking');
+      const errorMessage = err.response?.data?.error || err.response?.data?.message || 'Error creating booking';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { protect: organizerProtect } = require('../middleware/authMiddleware');
+const { protect, restrictTo } = require('../middleware/auth');
 const {
     createEventBasic,
     updateEventBanner,
@@ -26,17 +27,14 @@ router.get('/category/:category', getEventsByCategory);
 router.get('/search', searchEvents);
 router.get('/all', getAllEvents);
 router.get('/upcoming', getUpcomingEvents);
-router.get('/:eventId', getEventDetails); // Add route to get event details
+router.get('/:eventId', getEventDetails);
 
 // Admin routes
-router.get('/admin/upcoming', getAdminUpcomingEvents);
-router.get('/admin/past', getAdminPastEvents);
-
-// Test route (temporary)
-router.post('/test/create', createTestEvent);
+router.get('/admin/upcoming', protect, restrictTo('admin'), getAdminUpcomingEvents);
+router.get('/admin/past', protect, restrictTo('admin'), getAdminPastEvents);
 
 // Protected routes for organizers
-router.use(organizerProtect); // Apply organizer protection to all routes below
+router.use(organizerProtect);
 router.post('/', createEventBasic);
 router.patch('/:eventId/banner', updateEventBanner);
 router.patch('/:eventId/ticketing', updateEventTicketing);

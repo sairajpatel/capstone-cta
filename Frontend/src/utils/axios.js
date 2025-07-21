@@ -2,7 +2,8 @@ import axios from 'axios';
 import { store } from '../redux/store';
 import { logout } from '../redux/features/authSlice';
 
-const API_URL = 'https://capstone-cta.vercel.app/api';
+// Use environment variable or fallback to the production URL
+const API_URL = import.meta.env.VITE_API_URL || 'https://capstone-cta.vercel.app';
 
 const axiosInstance = axios.create({
   baseURL: API_URL,
@@ -23,8 +24,8 @@ axiosInstance.interceptors.request.use(
     }
 
     // Handle file uploads and JSON data
-    if (config.data && config.data.image) {
-      config.headers['Content-Type'] = 'application/json';
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
     }
 
     return config;
@@ -43,8 +44,17 @@ axiosInstance.interceptors.response.use(
     if (error.response?.status === 401) {
       store.dispatch(logout());
       const currentPath = window.location.pathname;
-      if (!currentPath.includes('/login') && !currentPath.includes('/admin/login')) {
+      // Check if it's an organizer route
+      if (currentPath.includes('/organizer')) {
+        window.location.href = '/organizer/login';
+      }
+      // Check if it's an admin route
+      else if (currentPath.includes('/admin')) {
         window.location.href = '/admin/login';
+      }
+      // Default to user login
+      else if (!currentPath.includes('/login')) {
+        window.location.href = '/login';
       }
     }
     return Promise.reject(error);

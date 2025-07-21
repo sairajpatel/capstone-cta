@@ -4,9 +4,8 @@ import { generateTicketQRData } from '../../utils/qrCodeUtils';
 
 const BookingConfirmation = ({ booking, onClose, onViewBookings }) => {
   const formatEventDate = (event) => {
+    if (!event || !event.startDate) return 'Date not available';
     try {
-      if (!event || !event.startDate) return 'Date not available';
-
       const date = new Date(event.startDate);
       if (isNaN(date.getTime())) return 'Date not available';
 
@@ -31,8 +30,9 @@ const BookingConfirmation = ({ booking, onClose, onViewBookings }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
+          {/* Header */}
           <div className="flex justify-between items-start mb-6">
             <div>
               <h2 className="text-2xl font-bold text-green-600 mb-2">Booking Confirmed!</h2>
@@ -49,7 +49,7 @@ const BookingConfirmation = ({ booking, onClose, onViewBookings }) => {
           </div>
 
           {/* Event Details */}
-          <div className="mb-8">
+          <div className="mb-6">
             <h3 className="text-xl font-semibold text-gray-900">{booking.event.title}</h3>
             <p className="text-gray-600 mt-1">{formatEventDate(booking.event)}</p>
             <p className="text-gray-600">{booking.event.location}</p>
@@ -77,23 +77,25 @@ const BookingConfirmation = ({ booking, onClose, onViewBookings }) => {
             </div>
           </div>
 
-          {/* Tickets with QR Codes */}
+          {/* Tickets Grid */}
           <div className="space-y-4">
             <h3 className="font-semibold text-lg text-gray-900">Your Tickets</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {booking.ticketNumbers.map((ticketNumber, index) => (
-                <div key={index} className="bg-white border-2 border-gray-200 rounded-lg p-6 flex flex-col items-center">
-                  <div className="bg-white p-3 rounded-lg shadow-md">
-                    <QRCodeSVG
-                      value={generateTicketQRData(booking, ticketNumber)}
-                      size={180}
-                      level="H"
-                      includeMargin={true}
-                    />
-                  </div>
-                  <div className="mt-4 text-center">
-                    <p className="text-sm font-semibold text-gray-900">Ticket #{index + 1}</p>
-                    <p className="text-xs text-gray-500 mt-1">{ticketNumber}</p>
+                <div key={index} className="flex flex-col h-full">
+                  <div className="bg-white border border-gray-200 rounded-lg p-4 flex-1 flex flex-col items-center">
+                    <div className="bg-white p-2 rounded-lg shadow-sm mb-3">
+                      <QRCodeSVG
+                        value={generateTicketQRData(booking, ticketNumber)}
+                        size={120}
+                        level="H"
+                        includeMargin={true}
+                      />
+                    </div>
+                    <div className="text-center mt-auto">
+                      <p className="text-sm font-medium text-gray-900">Ticket #{index + 1}</p>
+                      <p className="text-xs text-gray-500 mt-1 font-mono">{ticketNumber}</p>
+                    </div>
                   </div>
                 </div>
               ))}

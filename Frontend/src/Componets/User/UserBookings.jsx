@@ -9,6 +9,8 @@ const UserBookings = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [cancellingBookingId, setCancellingBookingId] = useState(null);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   useEffect(() => {
     fetchBookings();
@@ -44,6 +46,28 @@ const UserBookings = () => {
     }
   };
 
+  const handleCancelClick = (bookingId) => {
+    setCancellingBookingId(bookingId);
+    setShowCancelConfirm(true);
+  };
+
+  const handleCancelConfirm = async () => {
+    try {
+      const response = await axios.put(`/bookings/${cancellingBookingId}/cancel`);
+      if (response.data.success) {
+        fetchBookings(); // Refresh bookings list
+        setShowCancelConfirm(false);
+      } else {
+        setError('Failed to cancel booking');
+      }
+    } catch (err) {
+      console.error('Error cancelling booking:', err);
+      setError('Error cancelling booking');
+    } finally {
+      setCancellingBookingId(null);
+    }
+  };
+
   const formatEventDate = (event) => {
     try {
       if (!event || !event.startDate) return 'Date not available';
@@ -69,6 +93,31 @@ const UserBookings = () => {
       return 'Date not available';
     }
   };
+
+  const CancelConfirmationModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+        <h3 className="text-xl font-semibold text-gray-900 mb-4">Cancel Booking</h3>
+        <p className="text-gray-600 mb-6">
+          Are you sure you want to cancel this booking? This action cannot be undone.
+        </p>
+        <div className="flex justify-end space-x-4">
+          <button
+            onClick={() => setShowCancelConfirm(false)}
+            className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+          >
+            Keep Booking
+          </button>
+          <button
+            onClick={handleCancelConfirm}
+            className="px-4 py-2 text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+          >
+            Yes, Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 
   if (loading) {
     return (
@@ -156,22 +205,24 @@ const UserBookings = () => {
 
                   {/* Tickets */}
                   {booking.status === 'confirmed' && (
-                    <div>
+                    <div className="space-y-4">
                       <h4 className="font-medium text-gray-900 mb-3">Your Tickets</h4>
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                         {booking.ticketNumbers.map((ticketNumber, index) => (
-                          <div key={index} className="bg-gray-50 rounded-lg p-4 flex flex-col items-center">
-                            <div className="bg-white p-2 rounded-lg shadow-sm">
-                              <QRCodeSVG
-                                value={generateTicketQRData(booking, ticketNumber)}
-                                size={120}
-                                level="H"
-                                includeMargin={true}
-                              />
-                            </div>
-                            <div className="mt-3 text-center">
-                              <p className="text-xs font-medium text-gray-900">Ticket #{index + 1}</p>
-                              <p className="text-xs text-gray-500 mt-1">{ticketNumber}</p>
+                          <div key={index} className="flex flex-col h-full">
+                            <div className="bg-white border border-gray-200 rounded-lg p-4 flex-1 flex flex-col items-center">
+                              <div className="bg-white p-2 rounded-lg shadow-sm mb-3">
+                                <QRCodeSVG
+                                  value={generateTicketQRData(booking, ticketNumber)}
+                                  size={120}
+                                  level="H"
+                                  includeMargin={true}
+                                />
+                              </div>
+                              <div className="text-center mt-auto">
+                                <p className="text-sm font-medium text-gray-900">Ticket #{index + 1}</p>
+                                <p className="text-xs text-gray-500 mt-1 font-mono">{ticketNumber}</p>
+                              </div>
                             </div>
                           </div>
                         ))}
@@ -181,11 +232,14 @@ const UserBookings = () => {
 
                   {/* Actions */}
                   {booking.status === 'confirmed' && (
-                    <div className="mt-4 flex justify-end">
+                    <div className="mt-6 pt-4 border-t">
                       <button
-                        onClick={() => handleCancelBooking(booking._id)}
-                        className="text-red-600 hover:text-red-800 text-sm font-medium"
+                        onClick={() => handleCancelClick(booking._id)}
+                        className="w-full flex items-center justify-center px-4 py-2.5 text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
                       >
+                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
                         Cancel Booking
                       </button>
                     </div>
@@ -197,6 +251,7 @@ const UserBookings = () => {
         )}
       </div>
 
+      {showCancelConfirm && <CancelConfirmationModal />}
       <UserFooter />
     </div>
   );

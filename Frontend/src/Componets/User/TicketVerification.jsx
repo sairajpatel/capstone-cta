@@ -31,9 +31,11 @@ const TicketVerification = () => {
   }, [bookingId]);
 
   const formatDate = (dateString) => {
+    if (!dateString) return 'TBA';
     try {
       const date = new Date(dateString);
       if (isNaN(date.getTime())) return 'TBA';
+      
       return date.toLocaleDateString('en-US', {
         weekday: 'long',
         year: 'numeric',
@@ -41,8 +43,14 @@ const TicketVerification = () => {
         day: 'numeric'
       });
     } catch (error) {
+      console.error('Date formatting error:', error);
       return 'TBA';
     }
+  };
+
+  const formatTime = (startTime, endTime) => {
+    if (!startTime) return 'TBA';
+    return endTime ? `${startTime} - ${endTime}` : startTime;
   };
 
   if (loading) {
@@ -110,7 +118,7 @@ const TicketVerification = () => {
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Time</p>
-                      <p className="font-medium">{ticket.event.startTime || 'TBA'}</p>
+                      <p className="font-medium">{formatTime(ticket.event.startTime, ticket.event.endTime)}</p>
                     </div>
                     <div className="col-span-2">
                       <p className="text-sm text-gray-600">Location</p>

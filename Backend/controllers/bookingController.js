@@ -118,7 +118,7 @@ exports.getUserBookings = async (req, res) => {
 exports.getBookingDetails = async (req, res) => {
   try {
     const booking = await Booking.findById(req.params.bookingId)
-      .populate('event', 'title date location bannerImage')
+      .populate('event', 'title startDate startTime endTime location bannerImage')
       .populate('user', 'name email');
 
     if (!booking) {

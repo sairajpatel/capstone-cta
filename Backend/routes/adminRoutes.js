@@ -8,11 +8,9 @@ const {
     updateProfile,
     getDashboardStats,
     getUserStats,
-    getRevenueStats,
-    getAllUsers,
-    updateUserStatus
+    getRevenueStats
 } = require('../controllers/adminController');
-const { protect, restrictTo } = require('../middleware/auth');
+const { protect, restrictTo } = require('../middleware/authMiddleware');
 
 // Auth routes
 router.post('/register', registerAdmin);
@@ -27,9 +25,5 @@ router.put('/profile', protect, restrictTo('admin'), updateProfile);
 router.get('/dashboard/stats', protect, restrictTo('admin'), getDashboardStats);
 router.get('/users/stats', protect, restrictTo('admin'), getUserStats);
 router.get('/revenue/stats', protect, restrictTo('admin'), getRevenueStats);
-
-// User management routes
-router.get('/users', protect, restrictTo('admin'), getAllUsers);
-router.put('/users/:userId/status', protect, restrictTo('admin'), updateUserStatus);
 
 module.exports = router; 

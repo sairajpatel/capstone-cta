@@ -2,8 +2,7 @@ import axios from 'axios';
 import { store } from '../redux/store';
 import { logout } from '../redux/features/authSlice';
 
-// Use environment variable or fallback to localhost for development
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_URL = 'https://capstone-cta.vercel.app/api';
 
 const axiosInstance = axios.create({
   baseURL: API_URL,

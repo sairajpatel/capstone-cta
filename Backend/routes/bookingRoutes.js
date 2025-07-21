@@ -26,4 +26,7 @@ router.get('/:bookingId', getBookingDetails);
 // Cancel booking
 router.put('/:bookingId/cancel', cancelBooking);
 
+// Add this route to the existing routes
+router.get('/verify/:bookingId/:ticketNumber', bookingController.verifyTicket);
+
 module.exports = router; 

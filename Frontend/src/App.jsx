@@ -27,6 +27,7 @@ import ExploreEvents from './Componets/User/ExploreEvents';
 import AboutUs from './Componets/User/AboutUs';
 import ContactUs from './Componets/User/ContactUs';
 import UserBookings from './Componets/User/UserBookings';
+import TicketVerification from './Componets/User/TicketVerification';
 
 function App() {
   return (
@@ -46,6 +47,7 @@ function App() {
         <Route path="/events/:eventId" element={<UserEventDetails />} />
         <Route path="/about" element={<AboutUs />} />
         <Route path="/contact" element={<ContactUs />} />
+        <Route path="/ticket-verify/:bookingId/:ticketNumber" element={<TicketVerification />} />
 
         {/* Organizer Routes */}
         <Route path="/organizer/login" element={<OrganizerLogin />} />

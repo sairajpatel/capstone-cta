@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import axios from '../../utils/axios';
 import UserNavbar from './UserNavbar';
 import UserFooter from './UserFooter';
+import { QRCodeSVG } from 'qrcode.react';
 
 const TicketVerification = () => {
   const { bookingId, ticketNumber } = useParams();
@@ -108,7 +109,26 @@ const TicketVerification = () => {
             <div className="p-6">
               <h1 className="text-2xl font-bold text-gray-900 mb-4">{ticket.event.title}</h1>
               
-              <div className="space-y-4">
+              <div className="space-y-6">
+                {/* QR Code Section */}
+                <div className="flex flex-col items-center justify-center p-6 bg-gray-50 rounded-lg">
+                  <div className="bg-white p-4 rounded-lg shadow-md mb-4">
+                    <QRCodeSVG
+                      value={ticketNumber}
+                      size={200}
+                      level="H"
+                      includeMargin={true}
+                    />
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm font-medium text-gray-600 mb-1">Booking Reference</p>
+                    <p className="font-mono text-sm mb-3">{ticketNumber}</p>
+                    <div className="inline-flex items-center px-3 py-1 bg-blue-50 text-blue-700 rounded-full">
+                      <span className="font-medium">{ticket.quantity} Tickets</span>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="border-b pb-4">
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Event Details</h3>
                   <div className="grid grid-cols-2 gap-4">
@@ -136,8 +156,8 @@ const TicketVerification = () => {
                       <p className="font-medium">{ticket.ticketType}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600">Ticket Number</p>
-                      <p className="font-medium">{ticketNumber}</p>
+                      <p className="text-sm text-gray-600">Total Amount</p>
+                      <p className="font-medium">${ticket.totalAmount}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Status</p>
@@ -168,7 +188,7 @@ const TicketVerification = () => {
                       </h3>
                       <p className={`text-sm ${isValidTicket ? 'text-green-600' : 'text-red-600'}`}>
                         {isValidTicket 
-                          ? 'This ticket is valid and can be used for entry.' 
+                          ? `Valid for ${ticket.quantity} ${ticket.quantity > 1 ? 'persons' : 'person'}` 
                           : 'This ticket is not valid or has already been used.'}
                       </p>
                     </div>

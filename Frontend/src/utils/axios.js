@@ -1,21 +1,27 @@
 import axios from 'axios';
+import { store } from '../redux/store';
+import { logout } from '../redux/features/authSlice';
 
-const instance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
-  withCredentials: true
+const API_URL = 'https://capstone-cta.vercel.app/api';
+
+const axiosInstance = axios.create({
+  baseURL: API_URL,
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
-// Add a request interceptor
-instance.interceptors.request.use(
+// Add a request interceptor to include the token
+axiosInstance.interceptors.request.use(
   (config) => {
-    // Get token from localStorage
-    const token = localStorage.getItem('token');
-    
-    // If token exists, add it to headers
+    const state = store.getState();
+    const token = state.auth.token;
+
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      // Ensure token is properly formatted
+      config.headers.Authorization = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
     }
-    
     return config;
   },
   (error) => {
@@ -23,24 +29,21 @@ instance.interceptors.request.use(
   }
 );
 
-// Add a response interceptor
-instance.interceptors.response.use(
+// Add a response interceptor to handle errors
+axiosInstance.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-
-    // If error is 401 and we haven't retried yet
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-
-      // Clear token and redirect to login
-      localStorage.removeItem('token');
-      window.location.href = '/admin-login';
-      return Promise.reject(error);
+  (error) => {
+    if (error.response?.status === 401) {
+      // Handle unauthorized access
+      store.dispatch(logout());
+      // Only redirect if not already on login page and not on admin login page
+      const currentPath = window.location.pathname;
+      if (!currentPath.includes('/login') && !currentPath.includes('/admin/login')) {
+        window.location.href = '/admin/login';
+      }
     }
-
     return Promise.reject(error);
   }
 );
 
-export default instance;
+export default axiosInstance;

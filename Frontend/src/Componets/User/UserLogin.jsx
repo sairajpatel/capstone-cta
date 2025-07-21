@@ -29,7 +29,7 @@ const UserLogin = () => {
     setError('');
 
     try {
-      const response = await axios.post('/auth/login', formData);
+      const response = await axios.post('/auth/user/login', formData);
       
       if (response.data.success && response.data.token) {
         dispatch(login({
@@ -47,7 +47,11 @@ const UserLogin = () => {
       }
     } catch (err) {
       console.error('Login error:', err);
-      setError(err.response?.data?.message || 'Invalid email or password');
+      if (err.response?.status === 405) {
+        setError('Login service is temporarily unavailable. Please try again later.');
+      } else {
+        setError(err.response?.data?.message || 'Invalid email or password');
+      }
     } finally {
       setLoading(false);
     }

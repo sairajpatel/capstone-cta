@@ -8,16 +8,11 @@ const hostname = window.location.hostname;
 // Determine the API URL based on the environment and hostname
 const getApiUrl = () => {
   if (process.env.NODE_ENV === 'development') {
-    return 'http://localhost:5000/api';
+    return 'http://localhost:5000';
   }
   
   // For production
-  if (hostname.includes('vercel.app')) {
-    return `https://${hostname}/api`;
-  }
-  
-  // Default fallback
-  return 'https://capstone-cta-duyw.vercel.app/api';
+  return 'https://capstone-cta-duyw.vercel.app';
 };
 
 const API_URL = getApiUrl();
@@ -92,7 +87,8 @@ axiosInstance.interceptors.response.use(
     console.error('API Error:', {
       status: error.response?.status,
       data: error.response?.data,
-      message: error.message
+      message: error.message,
+      url: error.config?.url
     });
     
     if (error.response?.status === 401) {

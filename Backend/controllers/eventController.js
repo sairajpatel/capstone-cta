@@ -26,6 +26,13 @@ exports.getEventCategories = async (req, res) => {
 // Create Event - Step 1 (Basic Details)
 exports.createEventBasic = async (req, res) => {
     try {
+        if (!req.user || req.userRole !== 'organizer') {
+            return res.status(401).json({
+                success: false,
+                message: 'Not authorized to create events'
+            });
+        }
+
         const { title, category, scheduleType, startDate, startTime, endTime, location, description } = req.body;
 
         const event = await Event.create({
@@ -37,7 +44,7 @@ exports.createEventBasic = async (req, res) => {
             endTime,
             location,
             description,
-            organizer: req.organizer._id,
+            organizer: req.user._id,
             status: 'draft'
         });
 
@@ -46,6 +53,7 @@ exports.createEventBasic = async (req, res) => {
             data: event
         });
     } catch (error) {
+        console.error('Error creating event:', error);
         res.status(500).json({
             success: false,
             message: error.message
@@ -56,6 +64,13 @@ exports.createEventBasic = async (req, res) => {
 // Update Event Banner - Step 2
 exports.updateEventBanner = async (req, res) => {
     try {
+        if (!req.user || req.userRole !== 'organizer') {
+            return res.status(401).json({
+                success: false,
+                message: 'Not authorized to update events'
+            });
+        }
+
         if (!req.body.bannerImage) {
             return res.status(400).json({
                 success: false,
@@ -63,11 +78,11 @@ exports.updateEventBanner = async (req, res) => {
             });
         }
 
-        const event = await Event.findById(req.params.eventId);
+        const event = await Event.findOne({ _id: req.params.eventId, organizer: req.user._id });
         if (!event) {
             return res.status(404).json({
                 success: false,
-                message: 'Event not found'
+                message: 'Event not found or not authorized'
             });
         }
 
@@ -118,13 +133,20 @@ exports.updateEventBanner = async (req, res) => {
 // Update Event Ticketing - Step 3
 exports.updateEventTicketing = async (req, res) => {
     try {
+        if (!req.user || req.userRole !== 'organizer') {
+            return res.status(401).json({
+                success: false,
+                message: 'Not authorized to update events'
+            });
+        }
+
         const { ticketing, eventType } = req.body;
-        const event = await Event.findById(req.params.eventId);
+        const event = await Event.findOne({ _id: req.params.eventId, organizer: req.user._id });
 
         if (!event) {
             return res.status(404).json({
                 success: false,
-                message: 'Event not found'
+                message: 'Event not found or not authorized'
             });
         }
 
@@ -137,6 +159,7 @@ exports.updateEventTicketing = async (req, res) => {
             data: event
         });
     } catch (error) {
+        console.error('Error updating event ticketing:', error);
         res.status(500).json({
             success: false,
             message: error.message
@@ -147,12 +170,19 @@ exports.updateEventTicketing = async (req, res) => {
 // Publish Event - Step 4
 exports.publishEvent = async (req, res) => {
     try {
-        const event = await Event.findById(req.params.eventId);
+        if (!req.user || req.userRole !== 'organizer') {
+            return res.status(401).json({
+                success: false,
+                message: 'Not authorized to publish events'
+            });
+        }
+
+        const event = await Event.findOne({ _id: req.params.eventId, organizer: req.user._id });
 
         if (!event) {
             return res.status(404).json({
                 success: false,
-                message: 'Event not found'
+                message: 'Event not found or not authorized'
             });
         }
 
@@ -172,6 +202,7 @@ exports.publishEvent = async (req, res) => {
             data: event
         });
     } catch (error) {
+        console.error('Error publishing event:', error);
         res.status(500).json({
             success: false,
             message: error.message
@@ -207,7 +238,14 @@ exports.getEventDetails = async (req, res) => {
 // Get Organizer's Events
 exports.getOrganizerEvents = async (req, res) => {
     try {
-        const events = await Event.find({ organizer: req.organizer._id })
+        if (!req.user || req.userRole !== 'organizer') {
+            return res.status(401).json({
+                success: false,
+                message: 'Not authorized to access this route'
+            });
+        }
+
+        const events = await Event.find({ organizer: req.user._id })
             .sort('-createdAt');
 
         res.status(200).json({
@@ -215,6 +253,7 @@ exports.getOrganizerEvents = async (req, res) => {
             data: events
         });
     } catch (error) {
+        console.error('Error fetching organizer events:', error);
         res.status(500).json({
             success: false,
             message: error.message

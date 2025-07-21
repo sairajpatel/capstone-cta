@@ -57,10 +57,16 @@ exports.createBooking = async (req, res) => {
     selectedTicket.quantity -= quantity;
     await event.save();
 
-    // Populate event and user details
+    // Populate event and user details with specific fields
     await booking.populate([
-      { path: 'event', select: 'title date location bannerImage' },
-      { path: 'user', select: 'name email' }
+      { 
+        path: 'event',
+        select: 'title startDate startTime endTime location bannerImage'
+      },
+      { 
+        path: 'user',
+        select: 'name email'
+      }
     ]);
 
     res.status(201).json({
@@ -83,7 +89,10 @@ exports.getUserBookings = async (req, res) => {
   try {
     const userId = req.user._id;
     const bookings = await Booking.find({ user: userId })
-      .populate('event', 'title date location bannerImage')
+      .populate({
+        path: 'event',
+        select: 'title startDate startTime endTime location bannerImage'
+      })
       .sort('-createdAt');
 
     res.status(200).json({

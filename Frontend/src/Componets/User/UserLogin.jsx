@@ -25,43 +25,29 @@ const UserLogin = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
+    setError('');
 
     try {
-      // Attempt login
-      const response = await axios.post('/user/login', formData);
+      const response = await axios.post('/auth/user/login', formData);
       
-      if (!response.data.success) {
-        throw new Error(response.data.message || 'Login failed');
+      if (response.data.success && response.data.token) {
+        dispatch(login({
+          token: response.data.token,
+          role: 'user',
+          userData: response.data.data
+        }));
+
+        // Redirect to the intended page or dashboard
+        const params = new URLSearchParams(window.location.search);
+        const redirectUrl = params.get('redirect') || '/user/dashboard';
+        navigate(redirectUrl);
+      } else {
+        setError('Login failed. Please try again.');
       }
-
-      // Get token and user data from response
-      const { token, data: userData } = response.data;
-
-      // Dispatch login action with user data
-      dispatch(login({
-        token,
-        role: 'user',
-        userData: {
-          ...userData,
-          id: userData._id,
-          name: userData.name, // Ensure name is included
-          email: userData.email, // Ensure email is included
-          profileImage: userData.profileImage || null // Handle profile image
-        }
-      }));
-
-      // Show success message
-      toast.success('Login successful!');
-
-      // Navigate to dashboard
-      navigate('/user/dashboard', { replace: true });
     } catch (err) {
       console.error('Login error:', err);
-      const errorMessage = err.response?.data?.message || err.message || 'Login failed';
-      setError(errorMessage);
-      toast.error(errorMessage);
+      setError(err.response?.data?.message || 'Invalid email or password');
     } finally {
       setLoading(false);
     }

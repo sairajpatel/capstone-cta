@@ -2,13 +2,22 @@ import React from 'react';
 import { format } from 'date-fns';
 
 const BookingConfirmation = ({ booking, onClose, onViewBookings }) => {
-  // Format date safely with a fallback
-  const formatEventDate = (dateString) => {
+  const formatEventDate = (event) => {
     try {
-      if (!dateString) return 'Date not available';
-      const date = new Date(dateString);
+      if (!event) return 'Date not available';
+      
+      const { startDate, startTime, endTime } = event;
+      if (!startDate) return 'Date not available';
+
+      const date = new Date(startDate);
       if (isNaN(date.getTime())) return 'Date not available';
-      return format(date, 'EEEE, MMMM d, yyyy');
+
+      const formattedDate = format(date, 'EEEE, MMMM d, yyyy');
+      const timeString = startTime ? 
+        (endTime ? `${startTime} - ${endTime}` : startTime) 
+        : '';
+
+      return timeString ? `${formattedDate} at ${timeString}` : formattedDate;
     } catch (error) {
       console.error('Date formatting error:', error);
       return 'Date not available';
@@ -35,7 +44,10 @@ const BookingConfirmation = ({ booking, onClose, onViewBookings }) => {
             <div>
               <h3 className="text-xl font-semibold text-gray-900">{booking.event.title}</h3>
               <p className="text-gray-600">
-                {formatEventDate(booking.event.startDate)}
+                {formatEventDate(booking.event)}
+              </p>
+              <p className="text-gray-600">
+                {booking.event.location}
               </p>
             </div>
 
@@ -86,7 +98,7 @@ const BookingConfirmation = ({ booking, onClose, onViewBookings }) => {
               onClick={onViewBookings}
               className="flex-1 bg-[#2B293D] text-white py-2.5 rounded-lg font-medium hover:bg-opacity-90 transition-colors"
             >
-              View My Bookings
+              View My Tickets
             </button>
             <button
               onClick={onClose}

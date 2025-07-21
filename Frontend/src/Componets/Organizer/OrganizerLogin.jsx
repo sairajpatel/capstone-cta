@@ -24,29 +24,28 @@ const OrganizerLogin = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
+    setError('');
 
     try {
-      const response = await axios.post('/organizer/login', formData);
-      console.log('Login response:', response.data); // Debug log
+      const response = await axios.post('/auth/organizer/login', formData);
       
-      if (response.data.success) {
+      if (response.data.success && response.data.token) {
         dispatch(login({
-          token: response.data.data.token,
+          token: response.data.token,
           role: 'organizer',
-          userData: {
-            ...response.data.data,
-            role: 'organizer' // Ensure role is set
-          }
+          userData: response.data.data
         }));
-        
-        navigate('/organizer/dashboard');
+
+        // Redirect to the intended page or dashboard
+        const params = new URLSearchParams(window.location.search);
+        const redirectUrl = params.get('redirect') || '/organizer/dashboard';
+        navigate(redirectUrl);
       } else {
-        setError(response.data.message || 'Login failed');
+        setError('Login failed. Please try again.');
       }
     } catch (err) {
-      console.error('Login error:', err); // Debug log
+      console.error('Login error:', err);
       setError(err.response?.data?.message || 'Invalid email or password');
     } finally {
       setLoading(false);
@@ -57,14 +56,13 @@ const OrganizerLogin = () => {
     <div className="min-h-screen flex flex-col md:flex-row">
       {/* Left Panel - Dark Background */}
       <div className="w-full md:w-1/2 bg-[#2B293D] text-white p-6 md:p-12 flex flex-col min-h-[300px] md:min-h-screen">
-
         <div className="flex-grow flex flex-col justify-center">
-        <img src={logo} alt="GatherGuru Logo" className="w-[60%] " />
+          <img src={logo} alt="GatherGuru Logo" className="w-[60%] " />
           <h1 className="text-3xl md:text-4xl font-bold mb-3 md:mb-4">
-            Create amazing events.
+            Event Organizer Portal
           </h1>
           <p className="text-lg md:text-xl text-gray-300">
-            Sign in to manage your events and connect with attendees!
+            Sign in to manage your events and monitor ticket sales.
           </p>
         </div>
       </div>
@@ -143,15 +141,6 @@ const OrganizerLogin = () => {
               {loading ? 'Signing in...' : 'Sign in'}
             </button>
 
-            <div className="mt-4 md:mt-6 text-center">
-              <p className="text-sm text-gray-600">
-                Don't have an account?{' '}
-                <Link to="/organizer/signup" className="text-[#2B293D] font-medium hover:underline">
-                  Sign up
-                </Link>
-              </p>
-            </div>
-
             <div className="mt-6 md:mt-8 pt-4 md:pt-6 border-t border-gray-200">
               <div className="flex justify-center space-x-4">
                 <Link
@@ -162,10 +151,10 @@ const OrganizerLogin = () => {
                 </Link>
                 <span className="text-gray-300">|</span>
                 <Link
-                  to="/admin/login"
+                  to="/organizer/signup"
                   className="text-sm text-gray-600 hover:text-[#2B293D] transition-colors"
                 >
-                  Login as Admin
+                  Register as Organizer
                 </Link>
               </div>
             </div>

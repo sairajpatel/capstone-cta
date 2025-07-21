@@ -43,12 +43,22 @@ const UserBookings = () => {
     }
   };
 
-  const formatEventDate = (dateString) => {
+  const formatEventDate = (event) => {
     try {
-      if (!dateString) return 'Date not available';
-      const date = new Date(dateString);
+      if (!event) return 'Date not available';
+      
+      const { startDate, startTime, endTime } = event;
+      if (!startDate) return 'Date not available';
+
+      const date = new Date(startDate);
       if (isNaN(date.getTime())) return 'Date not available';
-      return format(date, 'PPP');
+
+      const formattedDate = format(date, 'EEEE, MMMM d, yyyy');
+      const timeString = startTime ? 
+        (endTime ? `${startTime} - ${endTime}` : startTime) 
+        : '';
+
+      return timeString ? `${formattedDate} at ${timeString}` : formattedDate;
     } catch (error) {
       console.error('Date formatting error:', error);
       return 'Date not available';
@@ -72,7 +82,7 @@ const UserBookings = () => {
       <UserNavbar />
       
       <main className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8">My Bookings</h1>
+        <h1 className="text-3xl font-bold mb-8">My Tickets</h1>
 
         {error && (
           <div className="bg-red-50 text-red-700 p-4 rounded-lg mb-6">
@@ -116,7 +126,11 @@ const UserBookings = () => {
                   <div className="space-y-2 text-gray-600">
                     <p>
                       <span className="font-medium">Date: </span>
-                      {formatEventDate(booking.event.startDate)}
+                      {formatEventDate(booking.event)}
+                    </p>
+                    <p>
+                      <span className="font-medium">Location: </span>
+                      {booking.event.location}
                     </p>
                     <p>
                       <span className="font-medium">Ticket Type: </span>

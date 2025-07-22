@@ -29,7 +29,7 @@ const UserLogin = () => {
     setError('');
 
     try {
-      const response = await axios.post('/auth/user/login', formData);
+      const response = await axios.post('/login', formData);
       
       if (response.data.success && response.data.token) {
         dispatch(login({

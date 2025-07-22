@@ -52,7 +52,8 @@ const authSlice = createSlice({
       Cookies.set('token', formattedToken, {
         expires: 7, // 7 days
         secure: true,
-        sameSite: 'Strict'
+        sameSite: 'None',
+        path: '/'
       });
       // Update state
       state.token = formattedToken;

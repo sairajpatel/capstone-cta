@@ -298,12 +298,13 @@ exports.userLogin = async (req, res) => {
         // Create token
         const token = generateToken(user._id, 'user');
 
-        // Set cookie
+        // Set cookie with appropriate settings for cross-origin
         res.cookie('token', token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'Lax',
-            maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+            secure: true, // Always use secure in production
+            sameSite: 'None', // Required for cross-origin
+            maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+            path: '/'
         });
 
         // Send response

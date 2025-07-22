@@ -12,7 +12,7 @@ const getApiUrl = () => {
   }
   
   // For production
-  return 'https://capstone-cta-duyw.vercel.app';
+  return 'https://capstone-cta-backend.vercel.app'; // Update this to your actual backend URL
 };
 
 const API_URL = getApiUrl();

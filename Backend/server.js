@@ -99,12 +99,12 @@ const profileRoutes = require('./routes/profileRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
 
 // API routes
-app.use('/api/auth', authRoutes);
-app.use('/api/events', eventRoutes);
-app.use('/api/organizer', organizerRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api/profile', profileRoutes);
-app.use('/api/bookings', bookingRoutes);
+app.use('/auth/user', authRoutes);
+app.use('/events', eventRoutes);
+app.use('/auth/organizer', organizerRoutes);
+app.use('/admin', adminRoutes);
+app.use('/profile', profileRoutes);
+app.use('/bookings', bookingRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {

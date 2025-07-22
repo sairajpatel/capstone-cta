@@ -349,3 +349,251 @@ exports.getRevenueStats = async (req, res) => {
         });
     }
 }; 
+
+// Get all users (including organizers)
+exports.getAllUsers = async (req, res) => {
+    try {
+        // Get users and organizers separately
+        const users = await User.find().select('name email role status lastLogin');
+        const organizers = await Organizer.find().select('name email organization status lastLogin');
+
+        // Format organizers to match user structure
+        const formattedOrganizers = organizers.map(org => ({
+            name: org.name,
+            email: org.email,
+            role: 'Organizer',
+            status: org.status ? org.status.charAt(0).toUpperCase() + org.status.slice(1) : 'Active', // Normalize status
+            lastLogin: org.lastLogin,
+            _id: org._id,
+            organization: org.organization,
+            userType: 'Organizer'
+        }));
+
+        // Format users
+        const formattedUsers = users.map(user => ({
+            name: user.name,
+            email: user.email,
+            role: 'User',
+            status: user.status ? user.status.charAt(0).toUpperCase() + user.status.slice(1) : 'Active', // Normalize status
+            lastLogin: user.lastLogin,
+            _id: user._id,
+            userType: 'User'
+        }));
+
+        // Combine and sort by lastLogin
+        const allUsers = [...formattedOrganizers, ...formattedUsers]
+            .sort((a, b) => new Date(b.lastLogin || 0) - new Date(a.lastLogin || 0));
+
+        res.status(200).json({
+            success: true,
+            data: allUsers
+        });
+    } catch (error) {
+        console.error('Error in getAllUsers:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+// Update user status
+exports.updateUserStatus = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const { status, userType } = req.body;
+
+        console.log('Updating status:', { userId, status, userType });
+
+        // Normalize status to lowercase for storage
+        const normalizedStatus = status.toLowerCase();
+
+        let user;
+        if (userType === 'Organizer') {
+            user = await Organizer.findByIdAndUpdate(
+                userId,
+                { status: normalizedStatus },
+                { new: true }
+            );
+        } else {
+            user = await User.findByIdAndUpdate(
+                userId,
+                { status: normalizedStatus },
+                { new: true }
+            );
+        }
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        // Format response with capitalized status
+        const response = {
+            ...user.toObject(),
+            status: user.status.charAt(0).toUpperCase() + user.status.slice(1)
+        };
+
+        res.status(200).json({
+            success: true,
+            data: response
+        });
+    } catch (error) {
+        console.error('Error in updateUserStatus:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+// Delete user
+exports.deleteUser = async (req, res) => {
+    try {
+        const { userId, userType } = req.body;
+
+        let user;
+        if (userType === 'Organizer') {
+            user = await Organizer.findByIdAndDelete(userId);
+        } else {
+            user = await User.findByIdAndDelete(userId);
+        }
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'User deleted successfully'
+        });
+    } catch (error) {
+        console.error('Error in deleteUser:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+}; 
+
+// Get user details
+exports.getUserDetails = async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        // Try to find in User collection first
+        let user = await User.findById(userId);
+        let userType = 'User';
+
+        // If not found in User collection, try Organizer collection
+        if (!user) {
+            user = await Organizer.findById(userId);
+            userType = 'Organizer';
+        }
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        // Format the response
+        const formattedUser = {
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            role: userType,
+            status: user.status ? user.status.charAt(0).toUpperCase() + user.status.slice(1) : 'Active',
+            lastLogin: user.lastLogin,
+            userType,
+            ...(userType === 'Organizer' && { organization: user.organization })
+        };
+
+        res.status(200).json({
+            success: true,
+            data: formattedUser
+        });
+    } catch (error) {
+        console.error('Error in getUserDetails:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+}; 
+
+// Get ticket statistics
+exports.getTicketStats = async (req, res) => {
+    try {
+        const Booking = require('../models/bookingModel');
+        const Event = require('../models/eventModel');
+
+        // Get all bookings with event details
+        const bookings = await Booking.find()
+            .populate('event', 'title category');
+
+        // Calculate total tickets and revenue
+        let totalTickets = 0;
+        let totalRevenue = 0;
+        const categoryMap = new Map();
+
+        // Process each booking
+        bookings.forEach(booking => {
+            if (!booking.event) return; // Skip if event is deleted
+
+            const category = booking.event.category;
+            totalTickets += booking.quantity;
+            totalRevenue += booking.totalAmount;
+
+            // Update category statistics
+            if (!categoryMap.has(category)) {
+                categoryMap.set(category, {
+                    category,
+                    ticketsSold: 0,
+                    revenue: 0
+                });
+            }
+            const categoryStats = categoryMap.get(category);
+            categoryStats.ticketsSold += booking.quantity;
+            categoryStats.revenue += booking.totalAmount;
+        });
+
+        // Get recent sales (last 10 bookings)
+        const recentSales = await Booking.find()
+            .populate('event', 'title category')
+            .sort({ createdAt: -1 })
+            .limit(10)
+            .then(bookings => bookings
+                .filter(booking => booking.event) // Filter out bookings with deleted events
+                .map(booking => ({
+                    eventTitle: booking.event.title,
+                    category: booking.event.category,
+                    ticketsSold: booking.quantity,
+                    revenue: booking.totalAmount,
+                    date: booking.createdAt
+                }))
+            );
+
+        res.status(200).json({
+            success: true,
+            data: {
+                totalTickets,
+                totalRevenue,
+                categoryStats: Array.from(categoryMap.values()),
+                recentSales
+            }
+        });
+    } catch (error) {
+        console.error('Error in getTicketStats:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+}; 

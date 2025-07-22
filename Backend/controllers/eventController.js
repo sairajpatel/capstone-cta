@@ -537,11 +537,21 @@ exports.getUpcomingEvents = async (req, res) => {
         })
         .sort({ startDate: 1 })
         .limit(5)
-        .select('title startDate startTime location bannerImage');
+        .select('title startDate startTime location bannerImage location');
+
+        // Format the response to include properly formatted dates
+        const formattedEvents = upcomingEvents.map(event => ({
+            _id: event._id,
+            title: event.title,
+            startDate: event.startDate,
+            startTime: event.startTime,
+            location: event.location,
+            bannerImage: event.bannerImage
+        }));
 
         res.status(200).json({
             success: true,
-            data: upcomingEvents
+            data: formattedEvents
         });
     } catch (error) {
         console.error('Error fetching upcoming events:', error);
@@ -593,6 +603,78 @@ exports.getAdminPastEvents = async (req, res) => {
         });
     } catch (error) {
         console.error('Error fetching past events:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+}; 
+
+exports.updateEventAdmin = async (req, res) => {
+    try {
+        // Check if user is admin
+        if (!req.user || req.userRole !== 'admin') {
+            return res.status(401).json({
+                success: false,
+                message: 'Not authorized - Admin access required'
+            });
+        }
+
+        const eventId = req.params.eventId;
+        const updateData = req.body;
+
+        // Find the event
+        const event = await Event.findById(eventId);
+        if (!event) {
+            return res.status(404).json({
+                success: false,
+                message: 'Event not found'
+            });
+        }
+
+        // Handle banner image update if provided
+        if (updateData.bannerImage && updateData.bannerImage !== event.bannerImage) {
+            // Delete old image from Cloudinary if it exists
+            if (event.bannerImage && event.bannerImage.includes('cloudinary')) {
+                try {
+                    const urlParts = event.bannerImage.split('/');
+                    const publicIdWithExtension = urlParts[urlParts.length - 1];
+                    const publicId = `event-banners/${publicIdWithExtension.split('.')[0]}`;
+                    await cloudinary.uploader.destroy(publicId);
+                } catch (error) {
+                    console.log('Error deleting old banner from Cloudinary:', error);
+                }
+            }
+
+            // Upload new image to Cloudinary
+            const uploadResult = await cloudinary.uploader.upload(updateData.bannerImage, {
+                folder: 'event-banners',
+                width: 1920,
+                height: 1080,
+                crop: "fill",
+                quality: "auto"
+            });
+
+            if (!uploadResult || !uploadResult.secure_url) {
+                throw new Error('Failed to get secure URL from Cloudinary');
+            }
+
+            updateData.bannerImage = uploadResult.secure_url;
+        }
+
+        // Update the event with all provided fields
+        const updatedEvent = await Event.findByIdAndUpdate(
+            eventId,
+            { $set: updateData },
+            { new: true, runValidators: true }
+        ).populate('organizer', 'name organization');
+
+        res.status(200).json({
+            success: true,
+            data: updatedEvent
+        });
+    } catch (error) {
+        console.error('Error in updateEventAdmin:', error);
         res.status(500).json({
             success: false,
             message: error.message

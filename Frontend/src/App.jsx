@@ -4,6 +4,9 @@ import { Toaster } from 'react-hot-toast';
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./Componets/AdminDashboard";
 import AdminEventList from './Componets/AdminEventList';
+import AdminEventEdit from './Componets/AdminEventEdit';
+import AdminUserProfileView from './Componets/AdminUserProfileView';
+import AdminTicketAnalytics from './Componets/AdminTicketAnalytics';
 import AdminProtectWrapper from "./Componets/ProtectionWrapper/AdminProtectWrapper";
 import AdminProfile from "./Componets/AdminProfile";
 import AdminUserList from "./Componets/AdminUserList";
@@ -85,7 +88,10 @@ function App() {
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin/dashboard" element={<AdminProtectWrapper><AdminDashboard /></AdminProtectWrapper>} />
         <Route path="/admin/events" element={<AdminProtectWrapper><AdminEventList /></AdminProtectWrapper>} />
+        <Route path="/admin/events/edit/:eventId" element={<AdminProtectWrapper><AdminEventEdit /></AdminProtectWrapper>} />
         <Route path="/admin/users" element={<AdminProtectWrapper><AdminUserList /></AdminProtectWrapper>} />
+        <Route path="/admin/users/:userId" element={<AdminProtectWrapper><AdminUserProfileView /></AdminProtectWrapper>} />
+        <Route path="/admin/tickets" element={<AdminProtectWrapper><AdminTicketAnalytics /></AdminProtectWrapper>} />
         <Route path="/admin/profile" element={<AdminProtectWrapper><AdminProfile /></AdminProtectWrapper>} />
 
         {/* Catch all - Redirect to User Login */}

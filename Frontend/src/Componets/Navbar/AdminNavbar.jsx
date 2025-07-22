@@ -56,7 +56,7 @@ export default function AdminNavbar() {
         <Link to="/admin/dashboard" className="hover:underline">Dashboard</Link>
         <Link to="/admin/events" className="hover:underline">Events</Link>
         <Link to="/admin/users" className="hover:underline">Users</Link>
-        <Link to="/admin/settings" className="hover:underline">Settings</Link>
+        <Link to="/admin/tickets" className="hover:underline">Tickets</Link>
 
         {/* Avatar Dropdown */}
         <div className="relative" ref={dropdownRef}>

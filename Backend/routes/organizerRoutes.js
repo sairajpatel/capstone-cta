@@ -4,13 +4,14 @@ const {
     registerOrganizer,
     logout,
     getProfile,
-    updateProfile
+    updateProfile,
+    loginOrganizer
 } = require('../controllers/organizerController');
 const { protect, restrictTo } = require('../middleware/authMiddleware');
 
 // Public routes
 router.post('/register', registerOrganizer);
-
+router.post('/login', loginOrganizer);
 // Protected routes
 router.use(protect);
 router.get('/profile', getProfile);

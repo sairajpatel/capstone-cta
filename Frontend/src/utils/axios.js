@@ -7,12 +7,8 @@ const hostname = window.location.hostname;
 
 // Determine the API URL based on the environment and hostname
 const getApiUrl = () => {
-  if (process.env.NODE_ENV === 'development') {
-    return 'http://localhost:5000';
-  }
-  
-  // For production
-  return 'https://capstone-cta.vercel.app'; // Update this to your actual backend URL
+  // Use the same URL for both development and production
+  return 'https://capstone-cta.vercel.app';
 };
 
 const API_URL = getApiUrl();

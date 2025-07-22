@@ -44,7 +44,7 @@ const UserSignup = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post("/user/register", {
+      const response = await axios.post("auth/user/register", {
         name: formData.name,
         email: formData.email,
         password: formData.password,

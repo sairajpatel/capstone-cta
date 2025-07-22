@@ -10,7 +10,7 @@ import { FaChevronDown, FaChevronUp, FaMusic, FaGlassCheers, FaPalette, FaRunnin
 import { MdCorporateFare, MdCake, MdEventSeat, MdSportsHandball, MdFoodBank, MdCelebration } from 'react-icons/md';
 import { toast } from 'react-hot-toast';
 import TextSizeControls from './TextSizeControls';
-
+//animaton
 // Animation variants
 const containerVariants = {
   hidden: { opacity: 0 },

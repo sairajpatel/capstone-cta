@@ -41,7 +41,7 @@ export default function AdminNavbar() {
 
   const handleLogout = () => {
     dispatch(logout());
-    navigate('/admin-login');
+    navigate('/admin/login');
   };
 
   return (

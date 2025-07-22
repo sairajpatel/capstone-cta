@@ -1,5 +1,8 @@
+const mongoose = require('mongoose');
 const UserProfile = require('../models/userProfileModel');
 const cloudinary = require('../config/cloudinary');
+const User = require('../models/userModel'); // Added for toggleEventInterest and getInterestedEvents
+const { Event } = require('../models/eventModel'); // Fixed Event model import
 
 // Get user profile
 const getUserProfile = async (req, res) => {
@@ -157,9 +160,135 @@ const deleteProfileImage = async (req, res) => {
   }
 };
 
+// Toggle interest in an event
+const toggleEventInterest = async (req, res) => {
+  try {
+    const { eventId } = req.body;
+    const userId = req.user._id;
+
+    // Validate eventId
+    if (!eventId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Event ID is required'
+      });
+    }
+
+    // Validate if eventId is a valid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(eventId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid event ID format'
+      });
+    }
+
+    // Check if event exists
+    const event = await Event.findById(eventId);
+    if (!event) {
+      return res.status(404).json({
+        success: false,
+        message: 'Event not found'
+      });
+    }
+
+    // Find user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Initialize interestedEvents array if it doesn't exist
+    if (!user.interestedEvents) {
+      user.interestedEvents = [];
+    }
+
+    // Convert eventId to ObjectId for comparison
+    const eventObjectId = new mongoose.Types.ObjectId(eventId);
+    
+    // Check if event is already in interests
+    const eventIndex = user.interestedEvents.findIndex(id => id.equals(eventObjectId));
+    const wasInterested = eventIndex > -1;
+
+    if (wasInterested) {
+      // Remove interest
+      user.interestedEvents.splice(eventIndex, 1);
+      await user.save();
+      res.json({ 
+        success: true,
+        message: 'Event removed from interests', 
+        isInterested: false,
+        eventId: eventId
+      });
+    } else {
+      // Add interest
+      user.interestedEvents.push(eventObjectId);
+      await user.save();
+      res.json({ 
+        success: true,
+        message: 'Event marked as interested', 
+        isInterested: true,
+        eventId: eventId
+      });
+    }
+  } catch (error) {
+    console.error('Toggle interest error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Error updating interest status',
+      error: error.message 
+    });
+  }
+};
+
+// Get interested events
+const getInterestedEvents = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    
+    // Find user and populate interestedEvents with event details
+    const user = await User.findById(userId).populate({
+      path: 'interestedEvents',
+      model: 'Event',
+      select: 'title bannerImage startDate venue location ticketing category organizer status',
+      populate: {
+        path: 'organizer',
+        select: 'name organization'
+      }
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Filter out any null or undefined events
+    const events = (user.interestedEvents || []).filter(event => event);
+
+    res.json({ 
+      success: true,
+      events,
+      count: events.length 
+    });
+  } catch (error) {
+    console.error('Get interested events error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Error fetching interested events',
+      error: error.message 
+    });
+  }
+};
+
 module.exports = {
   getUserProfile,
   updateProfile,
   uploadProfileImage,
-  deleteProfileImage
+  deleteProfileImage,
+  toggleEventInterest,
+  getInterestedEvents
 }; 

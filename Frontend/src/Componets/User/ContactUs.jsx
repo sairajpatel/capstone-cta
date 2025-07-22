@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import UserNavbar from './UserNavbar';
 import UserFooter from './UserFooter';
+import TextSizeControls from './TextSizeControls';
 
 const ContactUs = () => {
   const [formData, setFormData] = useState({
@@ -27,6 +28,7 @@ const ContactUs = () => {
   return (
     <div className="min-h-screen bg-white">
       <UserNavbar />
+      <TextSizeControls />
       
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Header */}

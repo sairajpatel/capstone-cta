@@ -6,6 +6,7 @@ import { toast } from 'react-hot-toast';
 import { processImageUpload } from '../../utils/cloudinaryUpload';
 import { useDispatch } from 'react-redux';
 import { setUser } from '../../redux/features/authSlice';
+import TextSizeControls from './TextSizeControls';
 
 const UserProfile = () => {
   const dispatch = useDispatch();
@@ -157,6 +158,7 @@ const UserProfile = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <UserNavbar />
+      <TextSizeControls />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col md:flex-row gap-6">

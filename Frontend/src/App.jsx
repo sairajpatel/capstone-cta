@@ -8,6 +8,7 @@ import AdminEventEdit from './Componets/AdminEventEdit';
 import AdminUserProfileView from './Componets/AdminUserProfileView';
 import AdminTicketAnalytics from './Componets/AdminTicketAnalytics';
 import AdminProtectWrapper from "./Componets/ProtectionWrapper/AdminProtectWrapper";
+import AuthPageProtectWrapper from "./Componets/ProtectionWrapper/AuthPageProtectWrapper";
 import AdminProfile from "./Componets/AdminProfile";
 import AdminUserList from "./Componets/AdminUserList";
 import UserSignup from "./Componets/User/UserSignup";
@@ -31,6 +32,7 @@ import AboutUs from './Componets/User/AboutUs';
 import ContactUs from './Componets/User/ContactUs';
 import UserBookings from './Componets/User/UserBookings';
 import TicketVerification from './Componets/User/TicketVerification';
+import InterestedEvents from './Componets/User/InterestedEvents';
 
 function App() {
   return (
@@ -38,11 +40,11 @@ function App() {
       <Toaster position="top-right" />
       <Routes>
         {/* Root Route - User Login */}
-        <Route path="/" element={<UserLogin />} />
-        <Route path="/user/login" element={<UserLogin />} />
+        <Route path="/" element={<AuthPageProtectWrapper><UserLogin /></AuthPageProtectWrapper>} />
+        <Route path="/user/login" element={<AuthPageProtectWrapper><UserLogin /></AuthPageProtectWrapper>} />
 
         {/* User Routes */}
-        <Route path="/user/signup" element={<UserSignup />} />
+        <Route path="/user/signup" element={<AuthPageProtectWrapper><UserSignup /></AuthPageProtectWrapper>} />
         <Route path="/user/dashboard" element={<UserProtection><UserDashboard /></UserProtection>} />
         <Route path="/user/profile" element={<UserProtection><UserProfile /></UserProtection>} />
         <Route path="/user/bookings" element={<UserProtection><UserBookings /></UserProtection>} />
@@ -51,10 +53,18 @@ function App() {
         <Route path="/about" element={<AboutUs />} />
         <Route path="/contact" element={<ContactUs />} />
         <Route path="/verify-ticket/:bookingId/:ticketNumber" element={<TicketVerification />} />
+        <Route
+          path="/user/interested"
+          element={
+            <UserProtection>
+              <InterestedEvents />
+            </UserProtection>
+          }
+        />
 
         {/* Organizer Routes */}
-        <Route path="/organizer/login" element={<OrganizerLogin />} />
-        <Route path="/organizer/signup" element={<OrganizerSignup />} />
+        <Route path="/organizer/login" element={<AuthPageProtectWrapper><OrganizerLogin /></AuthPageProtectWrapper>} />
+        <Route path="/organizer/signup" element={<AuthPageProtectWrapper><OrganizerSignup /></AuthPageProtectWrapper>} />
         <Route path="/organizer/dashboard" element={<OrganizerProtectWrapper><OrganizerDashboard /></OrganizerProtectWrapper>} />
         <Route path="/organizer/create-event" element={<OrganizerProtectWrapper><BasicDetails /></OrganizerProtectWrapper>} />
         <Route path="/organizer/create-event/edit/:eventId" element={<OrganizerProtectWrapper><EventSteps /></OrganizerProtectWrapper>} />
@@ -85,7 +95,7 @@ function App() {
         />
 
         {/* Admin Routes */}
-        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin/login" element={<AuthPageProtectWrapper><AdminLogin /></AuthPageProtectWrapper>} />
         <Route path="/admin/dashboard" element={<AdminProtectWrapper><AdminDashboard /></AdminProtectWrapper>} />
         <Route path="/admin/events" element={<AdminProtectWrapper><AdminEventList /></AdminProtectWrapper>} />
         <Route path="/admin/events/edit/:eventId" element={<AdminProtectWrapper><AdminEventEdit /></AdminProtectWrapper>} />
@@ -95,7 +105,7 @@ function App() {
         <Route path="/admin/profile" element={<AdminProtectWrapper><AdminProfile /></AdminProtectWrapper>} />
 
         {/* Catch all - Redirect to User Login */}
-        <Route path="*" element={<UserLogin />} />
+        <Route path="*" element={<AuthPageProtectWrapper><UserLogin /></AuthPageProtectWrapper>} />
       </Routes>
     </>
   );

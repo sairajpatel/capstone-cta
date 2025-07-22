@@ -105,10 +105,31 @@ exports.loginOrganizer = async (req, res) => {
 
 // Logout Organizer
 exports.logout = (req, res) => {
-    res.status(200).json({
-        success: true,
-        message: 'Logged out successfully'
+  try {
+    // Clear the token cookie
+    res.cookie('token', '', {
+      httpOnly: true,
+      expires: new Date(0),
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict'
     });
+
+    // Clear any other cookies if needed
+    res.cookie('user', '', {
+      expires: new Date(0)
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Logged out successfully'
+    });
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error during logout'
+    });
+  }
 };
 
 // Get Organizer Profile

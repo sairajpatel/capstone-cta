@@ -1,6 +1,6 @@
 const Admin = require('../models/adminModel');
+const { Event } = require('../models/eventModel');
 const User = require('../models/userModel');
-const { Event } = require('../models/eventModel'); // Fix the import to destructure Event
 const Organizer = require('../models/organizerModel');
 const Booking = require('../models/bookingModel');
 const cloudinary = require('../config/cloudinary');

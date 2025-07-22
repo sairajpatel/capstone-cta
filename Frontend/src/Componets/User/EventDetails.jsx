@@ -5,6 +5,9 @@ import axios from '../../utils/axios';
 import BookingForm from './BookingForm';
 import UserNavbar from './UserNavbar';
 import UserFooter from './UserFooter';
+import { toast } from 'react-hot-toast';
+import TextSizeControls from './TextSizeControls';
+import { FaStar } from 'react-icons/fa';
 
 const UserEventDetails = () => {
   const { eventId } = useParams();
@@ -16,11 +19,26 @@ const UserEventDetails = () => {
   const [showBookingForm, setShowBookingForm] = useState(false);
   const [userBookings, setUserBookings] = useState([]);
   const [bookingsLoading, setBookingsLoading] = useState(false);
+  const [isInterested, setIsInterested] = useState(false);
+  const [isTogglingInterest, setIsTogglingInterest] = useState(false);
 
   useEffect(() => {
     fetchEventDetails();
     if (user && token) {
       fetchUserBookings();
+    }
+    const checkInterestStatus = async () => {
+      try {
+        const response = await axios.get('/profile/interested-events');
+        const interestedEvents = response.data.events.map(event => event._id);
+        setIsInterested(interestedEvents.includes(eventId));
+      } catch (error) {
+        console.error('Error checking interest status:', error);
+      }
+    };
+
+    if (user && token) {
+      checkInterestStatus();
     }
   }, [eventId, user, token]);
 
@@ -58,6 +76,18 @@ const UserEventDetails = () => {
     }
   };
 
+  const isEventPassed = () => {
+    if (!event || !event.startDate) return false;
+    const eventDate = new Date(event.startDate);
+    const today = new Date();
+    
+    // Set both dates to start of day for fair comparison
+    eventDate.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+    
+    return eventDate < today;
+  };
+
   const formatDate = (dateString) => {
     try {
       if (!dateString) return 'Date not available';
@@ -75,6 +105,22 @@ const UserEventDetails = () => {
     }
   };
 
+  const handleBooking = () => {
+    if (!user) {
+      // Redirect to login if user is not authenticated
+      toast.error('Please login to book tickets');
+      navigate('/user/login');
+      return;
+    }
+
+    if (isEventPassed()) {
+      toast.error('This event has already ended');
+      return;
+    }
+
+    setShowBookingForm(true);
+  };
+
   const handleCancelBooking = async (bookingId) => {
     try {
       const response = await axios.put(`/bookings/${bookingId}/cancel`);
@@ -84,6 +130,35 @@ const UserEventDetails = () => {
     } catch (err) {
       console.error('Error cancelling booking:', err);
     }
+  };
+
+  const handleToggleInterest = async () => {
+    if (!user) {
+      toast.error('Please login to mark events as interested');
+      navigate('/user/login');
+      return;
+    }
+
+    try {
+      setIsTogglingInterest(true);
+      console.log('Toggling interest for event:', eventId);
+      const response = await axios.post('/profile/toggle-interest', { eventId: eventId });
+      console.log('Toggle interest response:', response.data);
+      setIsInterested(response.data.isInterested);
+      toast.success(response.data.message);
+    } catch (error) {
+      console.error('Error toggling interest:', error);
+      const errorMessage = error.response?.data?.message || error.response?.data?.error || 'Failed to update interest status';
+      toast.error(errorMessage);
+    } finally {
+      setIsTogglingInterest(false);
+    }
+  };
+
+  const getEventImage = (event) => {
+    if (!event) return null;
+    if (event.bannerImage) return event.bannerImage;
+    return 'https://via.placeholder.com/1200x400?text=No+Image+Available';
   };
 
   if (loading) {
@@ -111,76 +186,67 @@ const UserEventDetails = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <UserNavbar />
-
-      <main className="container mx-auto px-4 py-8">
-        {/* Event Header */}
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-          {/* Banner Image */}
-          <div className="relative h-[400px]">
-            <img
-              src={event.bannerImage}
-              alt={event.title}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                e.target.src = 'https://via.placeholder.com/1920x1080?text=No+Banner+Image';
-              }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-            <div className="absolute bottom-0 left-0 right-0 p-8 text-white">
-              <div className="flex items-center gap-4 mb-4">
-                <span className="bg-yellow-400 text-black px-4 py-1.5 rounded-full text-sm font-semibold">
-                  {event.category?.split('_').map(word => word.charAt(0) + word.slice(1).toLowerCase()).join(' ')}
-                </span>
-                <button className="bg-white/90 text-gray-800 rounded-full p-2 hover:bg-white transition-colors">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                  </svg>
+      <TextSizeControls />
+      <main className="container mx-auto px-4 pt-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Left Column - Event Details */}
+            <div className="md:col-span-2">
+              {/* Event Banner */}
+              <div className="relative rounded-lg overflow-hidden mb-8">
+                <img
+                  src={getEventImage(event)}
+                  alt={event?.title}
+                  className="w-full h-[400px] object-cover"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = 'https://via.placeholder.com/1200x400?text=No+Image+Available';
+                  }}
+                />
+                <button
+                  onClick={handleToggleInterest}
+                  disabled={isTogglingInterest}
+                  className={`absolute top-4 right-4 p-3 rounded-full bg-black bg-opacity-50 hover:bg-opacity-70 transition-colors ${isTogglingInterest ? 'cursor-not-allowed opacity-50' : ''}`}
+                >
+                  <FaStar 
+                    className={`text-2xl ${isInterested ? 'text-yellow-400' : 'text-gray-400'} ${isTogglingInterest ? 'animate-pulse' : ''}`} 
+                  />
                 </button>
               </div>
-              <h1 className="text-4xl font-bold mb-2">{event.title}</h1>
-              <p className="text-lg opacity-90">By {event.organizer?.organization || event.organizer?.name}</p>
-            </div>
-          </div>
 
-          {/* Event Details */}
-          <div className="grid md:grid-cols-3 gap-8 p-8">
-            {/* Left Column - Event Information */}
-            <div className="md:col-span-2 space-y-8">
-              <div>
-                <h2 className="text-2xl font-bold mb-4">Event Details</h2>
-                <div className="bg-gray-50 rounded-lg p-6 space-y-4">
-                  <div className="flex items-center gap-4">
-                    <div className="bg-[#2B293D] p-3 rounded-lg">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Date and Time</p>
-                      <p className="font-semibold">{formatDate(event.startDate)}</p>
-                      <p className="text-gray-600">{event.startTime} {event.endTime && `- ${event.endTime}`}</p>
-                    </div>
+              {/* Event Status */}
+              {isEventPassed() && (
+                <div className="bg-red-50 text-red-700 px-4 py-3 rounded-lg mb-6">
+                  This event has ended
+                </div>
+              )}
+
+              {/* Event Title and Basic Info */}
+              <div className="mb-8">
+                <h1 className="text-3xl font-bold text-gray-900 mb-4">{event.title}</h1>
+                <div className="flex flex-wrap gap-4 text-gray-600">
+                  <div className="flex items-center">
+                    <span className="mr-2">📅</span>
+                    {formatDate(event.startDate)}
                   </div>
-
-                  <div className="flex items-center gap-4">
-                    <div className="bg-[#2B293D] p-3 rounded-lg">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
+                  {event.startTime && (
+                    <div className="flex items-center">
+                      <span className="mr-2">⏰</span>
+                      {event.startTime}
                     </div>
-                    <div>
-                      <p className="text-sm text-gray-600">Location</p>
-                      <p className="font-semibold">{event.location}</p>
-                    </div>
+                  )}
+                  <div className="flex items-center">
+                    <span className="mr-2">📍</span>
+                    {event.location}
                   </div>
                 </div>
               </div>
 
-              <div>
+              {/* Event Description */}
+              <div className="prose max-w-none mb-8">
                 <h2 className="text-2xl font-bold mb-4">About This Event</h2>
-                <div className="bg-gray-50 rounded-lg p-6">
-                  <p className="text-gray-700 whitespace-pre-wrap">{event.description}</p>
+                <div className="text-gray-600 whitespace-pre-wrap">
+                  {event.description || 'No description available'}
                 </div>
               </div>
 
@@ -220,7 +286,7 @@ const UserEventDetails = () => {
                           </div>
                         </div>
 
-                        {booking.status === 'confirmed' && (
+                        {booking.status === 'confirmed' && !isEventPassed() && (
                           <button
                             onClick={() => handleCancelBooking(booking._id)}
                             className="mt-4 text-red-600 hover:text-red-800 text-sm font-medium"
@@ -239,14 +305,18 @@ const UserEventDetails = () => {
             <div>
               <div className="bg-gray-50 rounded-lg p-6 sticky top-8">
                 <h2 className="text-2xl font-bold mb-4">
-                  {event.eventType === 'free' ? 'Free Event' : 'Select Tickets'}
+                  {isEventPassed() ? 'Event Ended' : (event.eventType === 'free' ? 'Free Event' : 'Select Tickets')}
                 </h2>
                 
-                {event.eventType === 'free' ? (
+                {isEventPassed() ? (
+                  <div className="mb-6">
+                    <p className="text-gray-600 mb-4">This event has already taken place.</p>
+                  </div>
+                ) : event.eventType === 'free' ? (
                   <div className="mb-6">
                     <p className="text-gray-600 mb-4">This is a free event. Register now to secure your spot!</p>
                     <button 
-                      onClick={() => setShowBookingForm(true)}
+                      onClick={handleBooking}
                       className="w-full bg-[#2B293D] text-white py-3 rounded-lg font-medium hover:bg-opacity-90 transition-colors"
                     >
                       Register Now
@@ -269,7 +339,7 @@ const UserEventDetails = () => {
                       </div>
                     ))}
                     <button
-                      onClick={() => setShowBookingForm(true)}
+                      onClick={handleBooking}
                       className="w-full bg-[#2B293D] text-white py-3 rounded-lg font-medium hover:bg-opacity-90 transition-colors"
                     >
                       Book Now
@@ -278,11 +348,12 @@ const UserEventDetails = () => {
                 )}
 
                 <div className="mt-6 text-center">
-                  <button className="text-gray-600 hover:text-[#2B293D] text-sm flex items-center justify-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Need help?
+                  <button 
+                    onClick={handleToggleInterest}
+                    className="text-gray-600 hover:text-[#2B293D] text-sm flex items-center justify-center gap-2"
+                  >
+                    <FaStar className={`text-2xl ${isInterested ? 'text-yellow-400' : 'text-gray-400'}`} />
+                    {isInterested ? 'Interested' : 'Mark as Interested'}
                   </button>
                 </div>
               </div>

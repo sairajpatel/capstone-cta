@@ -4,6 +4,7 @@ import UserNavbar from './UserNavbar';
 import UserFooter from './UserFooter';
 import { QRCodeSVG } from 'qrcode.react';
 import { generateTicketQRData } from '../../utils/qrCodeUtils';
+import TextSizeControls from './TextSizeControls';
 
 const UserBookings = () => {
   const [bookings, setBookings] = useState([]);
@@ -121,8 +122,12 @@ const UserBookings = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2B293D]"></div>
+      <div className="min-h-screen bg-gray-50">
+        <UserNavbar />
+        <TextSizeControls />
+        <div className="flex items-center justify-center h-[calc(100vh-64px)]">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2B293D]"></div>
+        </div>
       </div>
     );
   }
@@ -130,6 +135,7 @@ const UserBookings = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <UserNavbar />
+      <TextSizeControls />
       
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold mb-8">My Tickets</h1>

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import axios from '../../utils/axios';
 import { logout } from '../../redux/features/authSlice';
+import { toast } from 'react-hot-toast';
 
 const OrganizerDashboard = () => {
   const navigate = useNavigate();
@@ -37,11 +38,27 @@ const OrganizerDashboard = () => {
 
   const handleLogout = async () => {
     try {
-      await axios.post('/organizer/logout');
+      // First clear the Redux state
       dispatch(logout());
+      
+      // Then make the API call to logout
+      await axios.post('/auth/organizer/logout');
+      
+      // Clear any local storage items if needed
+      localStorage.removeItem('user');
+      
+      // Show success message
+      toast.success('Logged out successfully');
+      
+      // Finally, navigate to login page
       navigate('/organizer/login');
     } catch (err) {
       console.error('Logout failed:', err);
+      // Even if the API call fails, we should still clear local state
+      dispatch(logout());
+      localStorage.removeItem('user');
+      toast.error('There was an issue logging out, but you have been logged out locally');
+      navigate('/organizer/login');
     }
   };
 
@@ -100,10 +117,7 @@ const OrganizerDashboard = () => {
                 Create New Event
               </button>
               <button
-                onClick={() => {
-                  // Handle logout
-                  navigate('/organizer/login');
-                }}
+                onClick={handleLogout}
                 className="text-gray-600 hover:text-gray-900 px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
               >
                 Logout

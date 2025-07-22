@@ -1,11 +1,13 @@
 import React from 'react';
 import UserNavbar from './UserNavbar';
 import UserFooter from './UserFooter';
+import TextSizeControls from './TextSizeControls';
 
 const AboutUs = () => {
   return (
     <div className="min-h-screen bg-[#1a1a2e]">
       <UserNavbar />
+      <TextSizeControls />
       <div className="w-full max-w-7xl mx-auto px-3 py-4 md:px-6 md:py-8">
         {/* Hero Section */}
         <div className="text-center mb-8 md:mb-12">

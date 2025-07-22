@@ -23,9 +23,9 @@ const UserNavbar = () => {
     <nav className="bg-[#2B293D] text-white shadow-md relative z-50">
       <div className="flex justify-between items-center p-4">
         {/* Logo */}
-        <div className="flex items-center space-x-2">
+        <Link to="/user/dashboard" className="flex items-center space-x-2">
           <img src={gatherguru_logo} alt="logo" className="w-[80%] h-full" />
-        </div>
+        </Link>
 
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center space-x-6 text-sm">
@@ -37,7 +37,7 @@ const UserNavbar = () => {
           <Link to="/user/bookings" className="flex items-center gap-2 hover:text-yellow-400 text-xl">
             <FaTicketAlt /> My Tickets
           </Link>
-          <Link to="#" className="flex items-center gap-1 hover:text-yellow-400 text-xl">
+          <Link to="/user/interested" className="flex items-center gap-1 hover:text-yellow-400 text-xl">
             <FaStar /> Interested
           </Link>
           
@@ -134,8 +134,8 @@ const UserNavbar = () => {
           <Link to="/events" className="block px-2 py-1 hover:text-yellow-400">Events</Link>
           <Link to="/about" className="block px-2 py-1 hover:text-yellow-400">About</Link>
           <Link to="/contact" className="block px-2 py-1 hover:text-yellow-400">Contact</Link>
-          <Link to="#" className="block px-2 py-1 hover:text-yellow-400">Tickets</Link>
-          <Link to="#" className="block px-2 py-1 hover:text-yellow-400">Interested</Link>
+          <Link to="/user/bookings" className="block px-2 py-1 hover:text-yellow-400">My Tickets</Link>
+          <Link to="/user/interested" className="block px-2 py-1 hover:text-yellow-400">Interested</Link>
           <Link to="/user/profile" className="block px-2 py-1 hover:text-yellow-400">View Profile</Link>
           <button onClick={handleLogout} className="block w-full text-left px-2 py-1 hover:text-yellow-400 text-red-400">Logout</button>
         </div>

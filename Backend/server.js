@@ -20,8 +20,7 @@ const allowedOrigins = [
   'http://localhost:5174',
   'https://capstone-cta-duyw.vercel.app',
   'https://capstone-cta.vercel.app',
-  'https://capstone-cta-frontend.vercel.app', // Add your production frontend URL
-  'https://capstone-cta-backend-latest.vercel.app'
+  'https://capstone-cta-frontend.vercel.app' // Add your production frontend URL
 ];
 //jay shree krishna
 // Configure CORS

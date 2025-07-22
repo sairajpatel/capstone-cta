@@ -239,13 +239,18 @@ exports.registerUser = async (req, res) => {
         // Create token
         const token = generateToken(user._id, 'user');
 
-        // Set cookie
+        // Set cookie with appropriate settings for cross-origin
         res.cookie('token', token, {
-            maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+            httpOnly: true,
+            secure: true,
+            sameSite: 'None',
+            maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+            path: '/'
         });
 
         res.status(200).json({
             success: true,
+            token,
             data: {
                 _id: user._id,
                 name: user.name,

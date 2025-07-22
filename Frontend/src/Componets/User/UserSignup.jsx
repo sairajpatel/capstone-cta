@@ -51,7 +51,11 @@ const UserSignup = () => {
         phone: formData.phone,
       });
 
-      dispatch(login({ token: response.data.token, role: "user" }));
+      dispatch(login({
+        token: response.data.token,
+        role: "user",
+        userData: response.data.data
+      }));
       navigate("/user/dashboard");
     } catch (err) {
       setError(err.response?.data?.message || "Registration failed. Please try again.");

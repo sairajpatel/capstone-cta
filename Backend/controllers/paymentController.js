@@ -1,10 +1,31 @@
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+// Initialize Stripe with proper error handling
+let stripe;
+try {
+    if (!process.env.STRIPE_SECRET_KEY) {
+        console.warn('STRIPE_SECRET_KEY not found in environment variables');
+        stripe = null;
+    } else {
+        stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+    }
+} catch (error) {
+    console.error('Error initializing Stripe:', error);
+    stripe = null;
+}
+
 const Booking = require('../models/bookingModel');
 const Event = require('../models/eventModel');
 
 // Create PaymentIntent for booking
 exports.createPaymentIntent = async (req, res) => {
     try {
+        // Check if Stripe is properly initialized
+        if (!stripe) {
+            return res.status(500).json({
+                success: false,
+                message: 'Payment service is not configured. Please contact support.'
+            });
+        }
+
         const { bookingId, amount, currency = 'usd' } = req.body;
 
         // Validate booking exists and belongs to user
@@ -70,6 +91,14 @@ exports.createPaymentIntent = async (req, res) => {
 // Confirm payment and update booking
 exports.confirmPayment = async (req, res) => {
     try {
+        // Check if Stripe is properly initialized
+        if (!stripe) {
+            return res.status(500).json({
+                success: false,
+                message: 'Payment service is not configured. Please contact support.'
+            });
+        }
+
         const { paymentIntentId, bookingId } = req.body;
 
         // Retrieve the payment intent from Stripe
@@ -121,6 +150,14 @@ exports.confirmPayment = async (req, res) => {
 // Get payment status
 exports.getPaymentStatus = async (req, res) => {
     try {
+        // Check if Stripe is properly initialized
+        if (!stripe) {
+            return res.status(500).json({
+                success: false,
+                message: 'Payment service is not configured. Please contact support.'
+            });
+        }
+
         const { paymentIntentId } = req.params;
 
         const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
@@ -143,8 +180,25 @@ exports.getPaymentStatus = async (req, res) => {
 
 // Webhook handler for Stripe events
 exports.handleWebhook = async (req, res) => {
+    // Check if Stripe is properly initialized
+    if (!stripe) {
+        console.error('Stripe not initialized for webhook');
+        return res.status(500).json({
+            success: false,
+            message: 'Payment service is not configured'
+        });
+    }
+
     const sig = req.headers['stripe-signature'];
     const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+    if (!endpointSecret) {
+        console.error('STRIPE_WEBHOOK_SECRET not configured');
+        return res.status(500).json({
+            success: false,
+            message: 'Webhook secret not configured'
+        });
+    }
 
     let event;
 

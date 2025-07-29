@@ -478,7 +478,7 @@ export const UserDashboard = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1 }}
-        className="relative min-h-[60vh] flex items-center justify-center text-center px-4 mt-6"
+        className="relative min-h-[70vh] flex items-center justify-center text-center px-4 mt-6"
       >
         <video
           className="absolute top-0 left-0 w-full h-full object-cover z-0"
@@ -488,18 +488,18 @@ export const UserDashboard = () => {
           muted
           playsInline
         ></video>
-        <div className="absolute inset-0 bg-black bg-opacity-50 z-10"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70 z-10"></div>
         <motion.div 
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.5, duration: 0.8 }}
-          className="relative z-20 text-white max-w-2xl mx-auto"
+          className="relative z-20 text-white max-w-3xl mx-auto"
         >
           <motion.h1 
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.7 }}
-            className="text-3xl md:text-5xl font-bold mb-4"
+            className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent"
           >
             Don't miss out!
           </motion.h1>
@@ -507,7 +507,7 @@ export const UserDashboard = () => {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.9 }}
-            className="text-lg md:text-xl mb-8"
+            className="text-xl md:text-2xl mb-10 text-gray-200 leading-relaxed"
           >
             Explore the vibrant events happening locally and globally.
           </motion.p>
@@ -516,26 +516,52 @@ export const UserDashboard = () => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 1.1 }}
             onSubmit={handleSearch} 
-            className="w-full max-w-xl mx-auto"
+            className="w-full max-w-2xl mx-auto"
           >
-            <div className="relative">
+            <div className="relative group">
+              {/* Search Icon */}
+              <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              
               <input
                 type="text"
-                placeholder="Search events..."
-                className="w-full px-6 py-3 rounded-full text-gray-800 text-lg focus:outline-none"
+                placeholder="Search for events, concerts, workshops..."
+                className="w-full pl-12 pr-24 py-4 rounded-full text-gray-800 text-lg focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-transparent shadow-lg backdrop-blur-sm bg-white/95 hover:bg-white transition-all duration-300"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
+              
               <motion.button
-                whileHover={{ scale: 1.02 }}
+                whileHover={{ scale: 1.02, backgroundColor: "#1d4ed8" }}
                 whileTap={{ scale: 0.98 }}
                 type="submit"
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-500 text-white px-6 py-2 rounded-full hover:bg-blue-600 transition-colors"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-2.5 rounded-full hover:shadow-lg transition-all duration-300 font-medium text-sm"
                 transition={{ duration: 0.2, ease: "easeOut" }}
               >
-                Search
+                <span className="flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  Search
+                </span>
               </motion.button>
             </div>
+            
+            {/* Search Suggestions */}
+            {searchQuery.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-2 text-center"
+              >
+                <span className="text-white/70 text-sm">
+                  Press Enter to search for "{searchQuery}"
+                </span>
+              </motion.div>
+            )}
           </motion.form>
         </motion.div>
       </motion.section>
@@ -545,15 +571,21 @@ export const UserDashboard = () => {
         initial="hidden"
         animate="visible"
         variants={containerVariants}
-        className="py-12 px-4"
+        className="py-16 px-4"
       >
         <div className="max-w-6xl mx-auto">
           <motion.h2 
             variants={fadeInUp}
-            className="text-2xl font-bold mb-8 text-center text-white"
+            className="text-3xl md:text-4xl font-bold mb-4 text-center text-white"
           >
             Explore Categories
           </motion.h2>
+          <motion.p
+            variants={fadeInUp}
+            className="text-gray-300 text-center mb-12 max-w-2xl mx-auto"
+          >
+            Discover events that match your interests and passions
+          </motion.p>
           <motion.div 
             variants={containerVariants}
             className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"
@@ -562,20 +594,20 @@ export const UserDashboard = () => {
               <motion.button
                 key={cat.value}
                 variants={itemVariants}
-                whileHover={{ scale: 1.02, backgroundColor: "#322f5d" }}
+                whileHover={{ scale: 1.02, backgroundColor: "#322f5d", boxShadow: "0 10px 25px rgba(0,0,0,0.3)" }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => handleCategoryClick(cat.value)}
-                className="flex flex-col items-center justify-center p-4 bg-[#28264D] rounded-xl transition-colors"
+                className="flex flex-col items-center justify-center p-6 bg-gradient-to-br from-[#28264D] to-[#1f1d3a] rounded-xl transition-all duration-300 border border-gray-700/50 hover:border-blue-500/50"
                 transition={{ duration: 0.2, ease: "easeOut" }}
               >
                 <motion.div 
-                  className="text-blue-400 mb-2"
-                  whileHover={{ rotate: 360 }}
+                  className="text-blue-400 mb-3 text-2xl"
+                  whileHover={{ rotate: 360, scale: 1.1 }}
                   transition={{ duration: 0.5 }}
                 >
                   {cat.icon}
                 </motion.div>
-                <span className="text-white text-sm text-center">{cat.label}</span>
+                <span className="text-white text-sm text-center font-medium">{cat.label}</span>
               </motion.button>
             ))}
           </motion.div>

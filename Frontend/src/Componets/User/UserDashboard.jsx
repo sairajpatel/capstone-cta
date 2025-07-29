@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
 import UserNavbar from './UserNavbar';
 import UserFooter from './UserFooter';
+import AccountStatusAlert from './AccountStatusAlert';
 import Video from '../../assets/user_hero.mp4';
 import axios from '../../utils/axios';
 import { FaChevronDown, FaChevronUp, FaMusic, FaGlassCheers, FaPalette, FaRunning, FaLaptop, FaGraduationCap, FaTheaterMasks, FaHeart, FaStar } from 'react-icons/fa';
@@ -472,6 +473,7 @@ export const UserDashboard = () => {
     <div className="min-h-screen bg-[#1C1B29]">
       <UserNavbar />
       <TextSizeControls />
+      <AccountStatusAlert />
 
       {/* Hero Section */}
       <motion.section 

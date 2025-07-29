@@ -46,6 +46,22 @@ exports.protect = async (req, res, next) => {
                 });
             }
 
+            // Check user status for non-admin users
+            if (decoded.role === 'user' && req.user.status !== 'active') {
+                let statusMessage = 'Your account has been deactivated.';
+                if (req.user.status === 'blocked') {
+                    statusMessage = 'Your account has been blocked. Please contact support.';
+                } else if (req.user.status === 'inactive') {
+                    statusMessage = 'Your account is currently inactive. Please contact support to reactivate.';
+                }
+                
+                return res.status(403).json({
+                    success: false,
+                    message: statusMessage,
+                    status: req.user.status
+                });
+            }
+
             // Add role to request object
             req.userRole = decoded.role;
             next();

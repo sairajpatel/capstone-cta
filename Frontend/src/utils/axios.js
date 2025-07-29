@@ -94,6 +94,21 @@ axiosInstance.interceptors.response.use(
         window.location.href = '/login';
       }
     }
+    
+    // Handle deactivated accounts
+    if (error.response?.status === 403) {
+      const errorMessage = error.response.data.message;
+      const status = error.response.data.status;
+      
+      if (status === 'inactive' || status === 'blocked') {
+        store.dispatch(logout());
+        // Show error message and redirect to login
+        if (typeof window !== 'undefined') {
+          alert(errorMessage);
+          window.location.href = '/user/login';
+        }
+      }
+    }
 
     return Promise.reject(error);
   }

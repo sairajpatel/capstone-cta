@@ -47,7 +47,10 @@ const UserLogin = () => {
       }
     } catch (err) {
       console.error('Login error:', err);
-      if (err.response?.status === 405) {
+      if (err.response?.status === 403) {
+        // Handle deactivated account
+        setError(err.response?.data?.message || 'Your account has been deactivated.');
+      } else if (err.response?.status === 405) {
         setError('Login service is temporarily unavailable. Please try again later.');
       } else {
         setError(err.response?.data?.message || 'Invalid email or password');

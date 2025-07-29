@@ -300,6 +300,22 @@ exports.userLogin = async (req, res) => {
             });
         }
 
+        // Check user status
+        if (user.status !== 'active') {
+            let statusMessage = 'Your account has been deactivated.';
+            if (user.status === 'blocked') {
+                statusMessage = 'Your account has been blocked. Please contact support.';
+            } else if (user.status === 'inactive') {
+                statusMessage = 'Your account is currently inactive. Please contact support to reactivate.';
+            }
+            
+            return res.status(403).json({
+                success: false,
+                message: statusMessage,
+                status: user.status
+            });
+        }
+
         // Get user profile to include profile image
         const UserProfile = require('../models/userProfileModel');
         const userProfile = await UserProfile.findOne({ user: user._id });
@@ -356,6 +372,22 @@ exports.getUserProfile = async (req, res) => {
             return res.status(404).json({
                 success: false,
                 message: 'User not found'
+            });
+        }
+
+        // Check user status
+        if (user.status !== 'active') {
+            let statusMessage = 'Your account has been deactivated.';
+            if (user.status === 'blocked') {
+                statusMessage = 'Your account has been blocked. Please contact support.';
+            } else if (user.status === 'inactive') {
+                statusMessage = 'Your account is currently inactive. Please contact support to reactivate.';
+            }
+            
+            return res.status(403).json({
+                success: false,
+                message: statusMessage,
+                status: user.status
             });
         }
 

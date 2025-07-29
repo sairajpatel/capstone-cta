@@ -28,7 +28,15 @@ const UserProfileInitializer = () => {
           }
         } catch (error) {
           console.error('Error fetching user profile:', error);
-          // Don't show error to user as this is a background operation
+          
+          // Handle deactivated account
+          if (error.response?.status === 403) {
+            const errorMessage = error.response.data.message;
+            // Dispatch logout action to clear user data
+            dispatch({ type: 'auth/logout' });
+            // You could also show a toast notification here
+            console.log('Account deactivated:', errorMessage);
+          }
         } finally {
           setIsLoading(false);
         }

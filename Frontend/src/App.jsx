@@ -34,7 +34,6 @@ import ContactUs from './Componets/User/ContactUs';
 import UserBookings from './Componets/User/UserBookings';
 import TicketVerification from './Componets/User/TicketVerification';
 import InterestedEvents from './Componets/User/InterestedEvents';
-import PaymentSuccess from './Componets/User/PaymentSuccess';
 
 function App() {
   return (
@@ -56,7 +55,6 @@ function App() {
         <Route path="/about" element={<AboutUs />} />
         <Route path="/contact" element={<ContactUs />} />
         <Route path="/verify-ticket/:bookingId/:ticketNumber" element={<TicketVerification />} />
-        <Route path="/payment-success" element={<PaymentSuccess />} />
         <Route
           path="/user/interested"
           element={

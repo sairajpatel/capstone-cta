@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from '../../utils/axios';
 import PaymentGateway from './PaymentGateway';
-import StripePaymentGateway from './StripePaymentGateway';
 import BookingConfirmation from './BookingConfirmation';
 import { toast } from 'react-hot-toast';
 
@@ -111,18 +110,9 @@ const BookingForm = ({ event, onClose }) => {
   }
 
   if (showPayment) {
-    const ticket = tickets.find(t => t.name === selectedTicket);
-    const bookingData = {
-      eventId: event._id,
-      ticketType: ticket.name,
-      quantity: quantity,
-      totalAmount: calculateTotal()
-    };
-
     return (
-      <StripePaymentGateway
+      <PaymentGateway
         amount={calculateTotal()}
-        bookingData={bookingData}
         onSuccess={createBooking}
         onCancel={() => setShowPayment(false)}
       />

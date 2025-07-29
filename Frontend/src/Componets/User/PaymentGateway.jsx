@@ -239,6 +239,7 @@ const PaymentComplete = () => {
 
 // Main Payment Gateway Component
 const PaymentGateway = ({ bookingId, amount, onSuccess, onError }) => {
+  console.log('PaymentGateway component rendered with:', { bookingId, amount });
   const [clientSecret, setClientSecret] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

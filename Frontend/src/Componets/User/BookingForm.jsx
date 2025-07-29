@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from '../../utils/axios';
-import PaymentGateway from './PaymentGateway';
+import { PaymentGateway } from './PaymentGateway';
 import BookingConfirmation from './BookingConfirmation';
 import { toast } from 'react-hot-toast';
 
@@ -110,6 +110,7 @@ const BookingForm = ({ event, onClose }) => {
   }
 
   if (showPayment && booking) {
+    console.log('Rendering new Stripe PaymentGateway with booking:', booking._id, 'amount:', calculateTotal());
     return (
       <PaymentGateway
         bookingId={booking._id}

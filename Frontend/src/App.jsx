@@ -35,6 +35,7 @@ import UserBookings from './Componets/User/UserBookings';
 import TicketVerification from './Componets/User/TicketVerification';
 import InterestedEvents from './Componets/User/InterestedEvents';
 import { PaymentComplete } from './Componets/User/PaymentGateway';
+import PaymentSuccess from './Componets/User/PaymentSuccess';
 
 function App() {
   return (
@@ -65,6 +66,7 @@ function App() {
           }
         />
         <Route path="/payment-complete" element={<PaymentComplete />} />
+        <Route path="/payment-success" element={<PaymentSuccess />} />
 
         {/* Organizer Routes */}
         <Route path="/organizer/login" element={<AuthPageProtectWrapper><OrganizerLogin /></AuthPageProtectWrapper>} />

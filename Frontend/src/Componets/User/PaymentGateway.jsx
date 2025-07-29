@@ -59,7 +59,7 @@ const CheckoutForm = ({ bookingId, amount, onSuccess, onError }) => {
       elements,
       confirmParams: {
         // Make sure to change this to your payment completion page
-        return_url: `${window.location.origin}/payment-complete`,
+        return_url: `${window.location.origin}/payment-success`,
       },
     });
 

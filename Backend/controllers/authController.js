@@ -300,6 +300,10 @@ exports.userLogin = async (req, res) => {
             });
         }
 
+        // Get user profile to include profile image
+        const UserProfile = require('../models/userProfileModel');
+        const userProfile = await UserProfile.findOne({ user: user._id });
+
         // Create token
         const token = generateToken(user._id, 'user');
 
@@ -312,7 +316,7 @@ exports.userLogin = async (req, res) => {
             path: '/'
         });
 
-        // Send response
+        // Send response with profile image if available
         res.status(200).json({
             success: true,
             token,
@@ -321,7 +325,8 @@ exports.userLogin = async (req, res) => {
                 name: user.name,
                 email: user.email,
                 phone: user.phone,
-                role: 'user'
+                role: 'user',
+                profileImage: userProfile?.profileImage || null
             }
         });
     } catch (error) {
@@ -354,6 +359,10 @@ exports.getUserProfile = async (req, res) => {
             });
         }
 
+        // Get user profile to include profile image
+        const UserProfile = require('../models/userProfileModel');
+        const userProfile = await UserProfile.findOne({ user: req.user._id });
+
         res.status(200).json({
             success: true,
             data: {
@@ -361,7 +370,8 @@ exports.getUserProfile = async (req, res) => {
                 name: user.name,
                 email: user.email,
                 phone: user.phone,
-                role: 'user'
+                role: 'user',
+                profileImage: userProfile?.profileImage || null
             }
         });
     } catch (error) {

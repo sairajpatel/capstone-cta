@@ -473,7 +473,8 @@ export const UserDashboard = () => {
     <div className="min-h-screen bg-[#1C1B29]">
       <UserNavbar />
       <TextSizeControls />
-      <AccountStatusAlert />
+      {/* Temporarily disabled until status is properly implemented */}
+      {/* <AccountStatusAlert /> */}
 
       {/* Hero Section */}
       <motion.section 

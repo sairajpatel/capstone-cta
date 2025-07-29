@@ -17,12 +17,14 @@ const UserProfileInitializer = () => {
           const response = await axios.get('/auth/user/profile');
           if (response.data.success) {
             const userData = response.data.data;
+            console.log('UserProfileInitializer - Received user data:', userData);
             // Update Redux store with complete user data
             dispatch(updateUserProfile({
               name: userData.name,
               email: userData.email,
               phone: userData.phone,
               role: userData.role,
+              status: userData.status,
               profileImage: userData.profileImage
             }));
           }

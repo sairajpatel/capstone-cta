@@ -4,7 +4,15 @@ import { useSelector } from 'react-redux';
 const AccountStatusAlert = () => {
   const { user } = useSelector((state) => state.auth);
 
-  if (!user || user.status === 'active') {
+  // Debug: Log user data to see what's available
+  console.log('AccountStatusAlert - User data:', user);
+
+  if (!user) {
+    return null;
+  }
+
+  // If status is not available or is active, don't show alert
+  if (!user.status || user.status === 'active') {
     return null;
   }
 

@@ -14,7 +14,8 @@ const getInitialUser = () => {
           id: decoded.id,
           role: decoded.role,
           name: decoded.name,
-          email: decoded.email
+          email: decoded.email,
+          status: decoded.status || 'active' // Default to active if not in token
         };
       }
       // Clear expired token

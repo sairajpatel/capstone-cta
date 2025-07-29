@@ -4,11 +4,11 @@ const User = require('../models/userModel');
 const jwt = require('jsonwebtoken');
 
 // Generate JWT Token
-const generateToken = (id, role) => {
+const generateToken = (id, role, status = 'active') => {
     if (!process.env.JWT_SECRET) {
         throw new Error('JWT_SECRET is not defined in environment variables');
     }
-    return jwt.sign({ id, role }, process.env.JWT_SECRET, {
+    return jwt.sign({ id, role, status }, process.env.JWT_SECRET, {
         expiresIn: '30d'
     });
 };
@@ -321,7 +321,7 @@ exports.userLogin = async (req, res) => {
         const userProfile = await UserProfile.findOne({ user: user._id });
 
         // Create token
-        const token = generateToken(user._id, 'user');
+        const token = generateToken(user._id, 'user', user.status);
 
         // Set cookie with appropriate settings for cross-origin
         res.cookie('token', token, {
@@ -342,6 +342,7 @@ exports.userLogin = async (req, res) => {
                 email: user.email,
                 phone: user.phone,
                 role: 'user',
+                status: user.status,
                 profileImage: userProfile?.profileImage || null
             }
         });
@@ -403,6 +404,7 @@ exports.getUserProfile = async (req, res) => {
                 email: user.email,
                 phone: user.phone,
                 role: 'user',
+                status: user.status,
                 profileImage: userProfile?.profileImage || null
             }
         });

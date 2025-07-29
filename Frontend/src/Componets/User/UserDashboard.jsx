@@ -414,7 +414,7 @@ export const UserDashboard = () => {
                             animate={{ opacity: 1 }}
                             className="font-semibold text-green-400"
                           >
-                            ₹{event.ticketing[0].price}
+                            ${event.ticketing[0].price}
                           </motion.span>
                           : 
                           <motion.span

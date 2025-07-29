@@ -276,7 +276,7 @@ const ExploreEvents = () => {
 
   const getEventPrice = (ticketing) => {
     if (!ticketing || ticketing.length === 0) {
-      return 'Tickets not available';
+      return 'Free';
     }
     const minPrice = Math.min(...ticketing.map(t => t.price));
     return `From $${minPrice}`;

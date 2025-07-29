@@ -74,7 +74,7 @@ const InterestedEvents = () => {
     if (!ticketing || ticketing.length === 0) return 'Free';
     const prices = ticketing.map(ticket => ticket.price);
     const minPrice = Math.min(...prices);
-    return `From ₹${minPrice}`;
+    return `From $${minPrice}`;
   };
 
   const getEventImage = (event) => {

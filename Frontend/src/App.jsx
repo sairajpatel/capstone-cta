@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
 import React from "react";
 import { Toaster } from 'react-hot-toast';
+import UserProfileInitializer from './Componets/User/UserProfileInitializer';
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./Componets/AdminDashboard";
 import AdminEventList from './Componets/AdminEventList';
@@ -38,6 +39,7 @@ function App() {
   return (
     <>
       <Toaster position="top-right" />
+      <UserProfileInitializer />
       <Routes>
         {/* Root Route - User Login */}
         <Route path="/" element={<AuthPageProtectWrapper><UserLogin /></AuthPageProtectWrapper>} />

@@ -86,6 +86,9 @@ const authSlice = createSlice({
     setLoading: (state, action) => {
       state.loading = action.payload;
     },
+    updateUserProfile: (state, action) => {
+      state.user = { ...state.user, ...action.payload };
+    },
     validateSession: (state) => {
       const token = state.token;
       if (token) {
@@ -122,6 +125,7 @@ export const {
   setError, 
   clearError, 
   setLoading,
+  updateUserProfile,
   validateSession 
 } = authSlice.actions;
 

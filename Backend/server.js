@@ -18,9 +18,12 @@ app.use(cookieParser());
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
+  'https://www.gatherguru.ca',
   'https://capstone-cta-duyw.vercel.app',
   'https://capstone-cta.vercel.app',
-  'https://capstone-cta-frontend.vercel.app' // Add your production frontend URL
+  'https://capstone-cta-frontend.vercel.app',
+
+   // Add your production frontend URL
 ];
 //jay shree krishna
 // Configure CORS

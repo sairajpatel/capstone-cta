@@ -17,50 +17,47 @@ const containerVariants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2
+      staggerChildren: 0.05,
+      delayChildren: 0.1
     }
   }
 };
 
 const itemVariants = {
-  hidden: { y: 20, opacity: 0 },
+  hidden: { y: 10, opacity: 0 },
   visible: {
     y: 0,
     opacity: 1,
     transition: {
-      type: "spring",
-      stiffness: 100,
-      damping: 15
+      duration: 0.3,
+      ease: "easeOut"
     }
   }
 };
 
 const cardHoverVariants = {
   hover: {
-    y: -8,
-    scale: 1.02,
+    y: -4,
+    scale: 1.01,
     transition: {
-      type: "spring",
-      stiffness: 400,
-      damping: 25
+      duration: 0.2,
+      ease: "easeOut"
     }
   },
   tap: {
-    scale: 0.98,
+    scale: 0.99,
     transition: {
-      type: "spring",
-      stiffness: 400,
-      damping: 25
+      duration: 0.1,
+      ease: "easeOut"
     }
   }
 };
 
 const imageVariants = {
   hover: {
-    scale: 1.05,
+    scale: 1.02,
     transition: {
-      duration: 0.4,
+      duration: 0.3,
       ease: "easeOut"
     }
   }
@@ -68,36 +65,41 @@ const imageVariants = {
 
 const buttonVariants = {
   hover: {
-    scale: 1.1,
+    scale: 1.05,
     transition: {
       duration: 0.2,
       ease: "easeOut"
     }
   },
   tap: {
-    scale: 0.9
+    scale: 0.95,
+    transition: {
+      duration: 0.1,
+      ease: "easeOut"
+    }
   }
 };
 
 const fadeInUp = {
-  hidden: { y: 20, opacity: 0 },
+  hidden: { y: 10, opacity: 0 },
   visible: {
     y: 0,
     opacity: 1,
     transition: {
-      duration: 0.6,
+      duration: 0.4,
       ease: "easeOut"
     }
   }
 };
 
 const scaleIn = {
-  hidden: { scale: 0.9, opacity: 0 },
+  hidden: { scale: 0.95, opacity: 0 },
   visible: {
     scale: 1,
     opacity: 1,
     transition: {
-      duration: 0.4
+      duration: 0.3,
+      ease: "easeOut"
     }
   }
 };
@@ -525,10 +527,11 @@ export const UserDashboard = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
               <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 type="submit"
                 className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-500 text-white px-6 py-2 rounded-full hover:bg-blue-600 transition-colors"
+                transition={{ duration: 0.2, ease: "easeOut" }}
               >
                 Search
               </motion.button>
@@ -559,10 +562,11 @@ export const UserDashboard = () => {
               <motion.button
                 key={cat.value}
                 variants={itemVariants}
-                whileHover={{ scale: 1.05, backgroundColor: "#322f5d" }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.02, backgroundColor: "#322f5d" }}
+                whileTap={{ scale: 0.98 }}
                 onClick={() => handleCategoryClick(cat.value)}
                 className="flex flex-col items-center justify-center p-4 bg-[#28264D] rounded-xl transition-colors"
+                transition={{ duration: 0.2, ease: "easeOut" }}
               >
                 <motion.div 
                   className="text-blue-400 mb-2"
@@ -582,10 +586,11 @@ export const UserDashboard = () => {
               className="text-center mt-8"
             >
               <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={() => setShowAllCategories(!showAllCategories)}
                 className="inline-flex items-center text-blue-400 hover:text-blue-300 font-medium transition-colors"
+                transition={{ duration: 0.2, ease: "easeOut" }}
               >
                 {showAllCategories ? (
                   <>

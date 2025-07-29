@@ -98,6 +98,7 @@ const organizerRoutes = require('./routes/organizerRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const profileRoutes = require('./routes/profileRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
 
 // API routes
 app.use('/auth/user', authRoutes);
@@ -106,6 +107,7 @@ app.use('/auth/organizer', organizerRoutes);
 app.use('/admin', adminRoutes);
 app.use('/profile', profileRoutes);
 app.use('/bookings', bookingRoutes);
+app.use('/payments', paymentRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {

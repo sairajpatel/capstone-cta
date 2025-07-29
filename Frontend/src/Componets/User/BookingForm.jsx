@@ -90,11 +90,11 @@ const BookingForm = ({ event, onClose }) => {
       return;
     }
 
-    // If it's a free ticket, create booking directly
-    if (ticket.price === 0) {
-      await createBooking();
-    } else {
-      // Show payment gateway for paid tickets
+    // Create booking first, then handle payment
+    await createBooking();
+    
+    // If it's a paid ticket, show payment gateway
+    if (ticket.price > 0) {
       setShowPayment(true);
     }
   };
@@ -109,12 +109,19 @@ const BookingForm = ({ event, onClose }) => {
     );
   }
 
-  if (showPayment) {
+  if (showPayment && booking) {
     return (
       <PaymentGateway
+        bookingId={booking._id}
         amount={calculateTotal()}
-        onSuccess={createBooking}
-        onCancel={() => setShowPayment(false)}
+        onSuccess={() => {
+          setShowConfirmation(true);
+          toast.success('Payment successful! Booking confirmed.');
+        }}
+        onError={(error) => {
+          toast.error(error || 'Payment failed. Please try again.');
+          setShowPayment(false);
+        }}
       />
     );
   }

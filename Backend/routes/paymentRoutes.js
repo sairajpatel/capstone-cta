@@ -5,8 +5,16 @@ const {
     createPaymentIntent,
     confirmPayment,
     getPaymentStatus,
-    handleWebhook
+    handleWebhook,
+    testStripeConfig,
+    healthCheck
 } = require('../controllers/paymentController');
+
+// Health check route (no authentication required)
+router.get('/health', healthCheck);
+
+// Test route (no authentication required)
+router.get('/test-config', testStripeConfig);
 
 // Payment routes (protected)
 router.post('/create-payment-intent', protect, createPaymentIntent);

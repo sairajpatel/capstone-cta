@@ -20,6 +20,10 @@ const BookingForm = ({ event, onClose }) => {
     ? [{ name: 'Free Entry', price: 0, quantity: 100 }] 
     : event.ticketing || [];
 
+  console.log('BookingForm - Event:', event);
+  console.log('BookingForm - Tickets:', tickets);
+  console.log('BookingForm - Selected ticket:', selectedTicket);
+
   const calculateTotal = () => {
     if (!selectedTicket) return 0;
     const ticket = tickets.find(t => t.name === selectedTicket);
@@ -40,6 +44,7 @@ const BookingForm = ({ event, onClose }) => {
   };
 
   const handleTicketSelect = (ticketName) => {
+    console.log('Selecting ticket:', ticketName);
     setSelectedTicket(ticketName);
     setQuantity(1);
     setError('');
@@ -60,11 +65,19 @@ const BookingForm = ({ event, onClose }) => {
         totalAmount: calculateTotal()
       };
 
+      console.log('Creating booking with data:', bookingData);
       const response = await axios.post('/bookings', bookingData);
+      
       if (response.data.success) {
         setBooking(response.data.data);
-        setShowConfirmation(true);
-        toast.success('Booking created successfully!');
+        console.log('Booking created successfully:', response.data.data);
+        
+        // Only show confirmation immediately for free tickets
+        if (ticket.price === 0) {
+          setShowConfirmation(true);
+          toast.success('Booking created successfully!');
+        }
+        // For paid tickets, let the payment flow handle confirmation
       } else {
         throw new Error(response.data.message || 'Failed to create booking');
       }
@@ -72,6 +85,7 @@ const BookingForm = ({ event, onClose }) => {
       console.error('Booking error:', err);
       setError(err.message || 'Failed to create booking. Please try again.');
       toast.error(err.message || 'Failed to create booking');
+      throw err; // Re-throw to stop the payment flow
     } finally {
       setLoading(false);
     }
@@ -79,23 +93,32 @@ const BookingForm = ({ event, onClose }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('handleSubmit called');
+    
     if (!selectedTicket) {
       setError('Please select a ticket type');
       return;
     }
 
     const ticket = tickets.find(t => t.name === selectedTicket);
+    console.log('Selected ticket:', ticket);
+    
     if (!ticket || ticket.quantity < quantity) {
       setError('Not enough tickets available');
       return;
     }
 
+    console.log('Creating booking...');
     // Create booking first, then handle payment
     await createBooking();
     
+    console.log('Booking created, checking if payment needed...');
     // If it's a paid ticket, show payment gateway
     if (ticket.price > 0) {
+      console.log('Paid ticket detected, showing payment gateway');
       setShowPayment(true);
+    } else {
+      console.log('Free ticket, showing confirmation directly');
     }
   };
 
@@ -110,20 +133,30 @@ const BookingForm = ({ event, onClose }) => {
   }
 
   if (showPayment && booking) {
-    console.log('Rendering new Stripe PaymentGateway with booking:', booking._id, 'amount:', calculateTotal());
+    console.log('Rendering PaymentGateway with booking:', booking._id, 'amount:', calculateTotal());
+    console.log('showPayment:', showPayment, 'booking:', booking);
+    
+    // Test if PaymentGateway component is working
+    console.log('PaymentGateway component:', PaymentGateway);
+    
     return (
-      <PaymentGateway
-        bookingId={booking._id}
-        amount={calculateTotal()}
-        onSuccess={() => {
-          setShowConfirmation(true);
-          toast.success('Payment successful! Booking confirmed.');
-        }}
-        onError={(error) => {
-          toast.error(error || 'Payment failed. Please try again.');
-          setShowPayment(false);
-        }}
-      />
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg p-6 max-w-2xl w-full">
+          <h2 className="text-2xl font-bold mb-4">Payment Gateway</h2>
+          <PaymentGateway
+            bookingId={booking._id}
+            amount={calculateTotal()}
+            onSuccess={() => {
+              setShowConfirmation(true);
+              toast.success('Payment successful! Booking confirmed.');
+            }}
+            onError={(error) => {
+              toast.error(error || 'Payment failed. Please try again.');
+              setShowPayment(false);
+            }}
+          />
+        </div>
+      </div>
     );
   }
 
@@ -152,7 +185,9 @@ const BookingForm = ({ event, onClose }) => {
             </label>
             <div className="space-y-2">
               {tickets.map((ticket, index) => (
-                <label key={index} className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                <label key={index} className={`flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors ${
+                  selectedTicket === ticket.name ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                }`}>
                   <input
                     type="radio"
                     name="ticketType"
@@ -195,11 +230,21 @@ const BookingForm = ({ event, onClose }) => {
               <span className="font-medium">Total Amount:</span>
               <span className="font-bold">${calculateTotal()}</span>
             </div>
+            
+            {!selectedTicket && (
+              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-blue-700 text-sm">Please select a ticket type to continue</p>
+              </div>
+            )}
+            
             <button
               type="submit"
               disabled={loading || !selectedTicket}
-              className={`w-full bg-[#2B293D] text-white py-3 rounded-lg font-medium hover:bg-opacity-90 transition-colors
-                ${(loading || !selectedTicket) ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`w-full py-3 rounded-lg font-medium transition-all duration-200 ${
+                loading || !selectedTicket
+                  ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                  : 'bg-[#2B293D] text-white hover:bg-opacity-90 hover:scale-105'
+              }`}
             >
               {loading ? 'Processing...' : 'Continue to Book'}
             </button>

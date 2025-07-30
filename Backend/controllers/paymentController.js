@@ -18,8 +18,19 @@ const Event = require('../models/eventModel');
 // Create PaymentIntent for booking
 exports.createPaymentIntent = async (req, res) => {
     try {
+        console.log('=== PAYMENT INTENT CREATION START ===');
+        console.log('Request body:', req.body);
+        console.log('User:', req.user);
+        console.log('Stripe initialized:', !!stripe);
+        console.log('Environment variables:', {
+            STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY ? 'SET' : 'NOT SET',
+            STRIPE_PUBLISHABLE_KEY: process.env.Publishable_Key ? 'SET' : 'NOT SET',
+            STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET ? 'SET' : 'NOT SET'
+        });
+
         // Check if Stripe is properly initialized
         if (!stripe) {
+            console.error('Stripe not initialized - missing STRIPE_SECRET_KEY');
             return res.status(500).json({
                 success: false,
                 message: 'Payment service is not configured. Please contact support.'
@@ -27,11 +38,29 @@ exports.createPaymentIntent = async (req, res) => {
         }
 
         const { bookingId, amount, currency = 'usd' } = req.body;
+        console.log('Payment intent data:', { bookingId, amount, currency });
+
+        // Validate required fields
+        if (!bookingId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Booking ID is required'
+            });
+        }
+
+        if (!amount || amount <= 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Valid amount is required'
+            });
+        }
 
         // Validate booking exists and belongs to user
         const booking = await Booking.findById(bookingId).populate('event');
+        console.log('Found booking:', booking ? 'YES' : 'NO');
         
         if (!booking) {
+            console.error('Booking not found:', bookingId);
             return res.status(404).json({
                 success: false,
                 message: 'Booking not found'
@@ -40,6 +69,10 @@ exports.createPaymentIntent = async (req, res) => {
 
         // Check if booking belongs to the authenticated user
         if (booking.user.toString() !== req.user._id.toString()) {
+            console.error('Unauthorized booking access:', {
+                bookingUser: booking.user.toString(),
+                requestUser: req.user._id.toString()
+            });
             return res.status(403).json({
                 success: false,
                 message: 'Not authorized to pay for this booking'
@@ -48,15 +81,35 @@ exports.createPaymentIntent = async (req, res) => {
 
         // Check if booking is already paid
         if (booking.status === 'confirmed') {
+            console.error('Booking already paid:', bookingId);
             return res.status(400).json({
                 success: false,
                 message: 'Booking is already paid'
             });
         }
 
+        // Validate that event exists
+        if (!booking.event) {
+            console.error('Event not found for booking:', bookingId);
+            return res.status(404).json({
+                success: false,
+                message: 'Event not found for this booking'
+            });
+        }
+
         // Convert amount to cents (Stripe expects amounts in cents)
         const amountInCents = Math.round(amount * 100);
+        console.log('Amount in cents:', amountInCents);
 
+        // Validate amount is reasonable
+        if (amountInCents < 50) { // Minimum 50 cents
+            return res.status(400).json({
+                success: false,
+                message: 'Amount must be at least $0.50'
+            });
+        }
+
+        console.log('Creating Stripe PaymentIntent...');
         // Create PaymentIntent
         const paymentIntent = await stripe.paymentIntents.create({
             amount: amountInCents,
@@ -73,6 +126,9 @@ exports.createPaymentIntent = async (req, res) => {
             },
         });
 
+        console.log('PaymentIntent created successfully:', paymentIntent.id);
+        console.log('=== PAYMENT INTENT CREATION END ===');
+
         res.status(200).json({
             success: true,
             clientSecret: paymentIntent.client_secret,
@@ -80,10 +136,35 @@ exports.createPaymentIntent = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Payment Intent creation error:', error);
+        console.error('=== PAYMENT INTENT CREATION ERROR ===');
+        console.error('Error type:', error.constructor.name);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+        
+        // Handle specific Stripe errors
+        if (error.type === 'StripeCardError') {
+            return res.status(400).json({
+                success: false,
+                message: 'Card error: ' + error.message
+            });
+        } else if (error.type === 'StripeInvalidRequestError') {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid request: ' + error.message
+            });
+        } else if (error.type === 'StripeAPIError') {
+            return res.status(500).json({
+                success: false,
+                message: 'Payment service error. Please try again later.'
+            });
+        }
+        
+        console.error('Stripe error details:', error);
+        console.error('=== PAYMENT INTENT CREATION ERROR END ===');
+        
         res.status(500).json({
             success: false,
-            message: 'Error creating payment intent'
+            message: 'Error creating payment intent. Please try again.'
         });
     }
 };
@@ -249,4 +330,88 @@ exports.handleWebhook = async (req, res) => {
     }
 
     res.json({ received: true });
+}; 
+
+// Test endpoint to check Stripe configuration
+exports.testStripeConfig = async (req, res) => {
+    try {
+        console.log('=== STRIPE CONFIG TEST ===');
+        console.log('Stripe initialized:', !!stripe);
+        console.log('Environment variables:', {
+            STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY ? 'SET' : 'NOT SET',
+            STRIPE_PUBLISHABLE_KEY: process.env.Publishable_Key ? 'SET' : 'NOT SET',
+            STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET ? 'SET' : 'NOT SET'
+        });
+
+        if (!stripe) {
+            return res.status(500).json({
+                success: false,
+                message: 'Stripe not initialized - missing STRIPE_SECRET_KEY',
+                config: {
+                    stripeInitialized: false,
+                    envVars: {
+                        STRIPE_SECRET_KEY: !!process.env.STRIPE_SECRET_KEY,
+                        STRIPE_PUBLISHABLE_KEY: !!process.env.Publishable_Key,
+                        STRIPE_WEBHOOK_SECRET: !!process.env.STRIPE_WEBHOOK_SECRET
+                    }
+                }
+            });
+        }
+
+        // Test Stripe connection
+        try {
+            const testPaymentIntent = await stripe.paymentIntents.create({
+                amount: 100, // $1.00
+                currency: 'usd',
+                metadata: { test: true }
+            });
+            
+            console.log('Stripe test successful:', testPaymentIntent.id);
+            
+            return res.status(200).json({
+                success: true,
+                message: 'Stripe configuration is working',
+                testPaymentIntentId: testPaymentIntent.id,
+                config: {
+                    stripeInitialized: true,
+                    envVars: {
+                        STRIPE_SECRET_KEY: !!process.env.STRIPE_SECRET_KEY,
+                        STRIPE_PUBLISHABLE_KEY: !!process.env.Publishable_Key,
+                        STRIPE_WEBHOOK_SECRET: !!process.env.STRIPE_WEBHOOK_SECRET
+                    }
+                }
+            });
+        } catch (stripeError) {
+            console.error('Stripe test failed:', stripeError);
+            return res.status(500).json({
+                success: false,
+                message: 'Stripe test failed: ' + stripeError.message,
+                error: stripeError.message
+            });
+        }
+    } catch (error) {
+        console.error('Config test error:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Config test error: ' + error.message
+        });
+    }
+};
+
+// Simple health check endpoint
+exports.healthCheck = async (req, res) => {
+    try {
+        res.status(200).json({
+            success: true,
+            message: 'Payment service is running',
+            timestamp: new Date().toISOString(),
+            stripeInitialized: !!stripe
+        });
+    } catch (error) {
+        console.error('Health check error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Payment service error'
+        });
+    }
 }; 

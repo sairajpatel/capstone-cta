@@ -248,20 +248,46 @@ const PaymentGateway = ({ bookingId, amount, onSuccess, onError }) => {
     const createPaymentIntent = async () => {
       try {
         setLoading(true);
+        console.log('Creating payment intent with data:', {
+          bookingId,
+          amount,
+          currency: 'usd'
+        });
+        
         const response = await axios.post('/payments/create-payment-intent', {
           bookingId,
           amount,
           currency: 'usd'
         });
 
+        console.log('Payment intent response:', response.data);
+
         if (response.data.success) {
           setClientSecret(response.data.clientSecret);
         } else {
+          console.error('Payment intent failed:', response.data);
           setError(response.data.message);
         }
       } catch (err) {
         console.error('Error creating payment intent:', err);
-        setError(err.response?.data?.message || 'Error creating payment intent');
+        console.error('Error details:', {
+          message: err.message,
+          status: err.response?.status,
+          statusText: err.response?.statusText,
+          data: err.response?.data,
+          headers: err.response?.headers,
+          config: err.config
+        });
+        
+        // Show detailed error information
+        let errorMessage = 'Error creating payment intent';
+        if (err.response?.data?.message) {
+          errorMessage = err.response.data.message;
+        } else if (err.message) {
+          errorMessage = err.message;
+        }
+        
+        setError(errorMessage);
       } finally {
         setLoading(false);
       }

@@ -1,7 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 import React from "react";
 import { Toaster } from 'react-hot-toast';
-import { HelmetProvider } from 'react-helmet-async';
 import UserProfileInitializer from './Componets/User/UserProfileInitializer';
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./Componets/AdminDashboard";
@@ -43,9 +42,8 @@ function App() {
   return (
     <>
       <Toaster position="top-right" />
-      <HelmetProvider>
-        <UserProfileInitializer />
-        <Routes>
+      <UserProfileInitializer />
+      <Routes>
           {/* Root Route - User Login */}
           <Route path="/" element={<AuthPageProtectWrapper><UserLogin /></AuthPageProtectWrapper>} />
           <Route path="/user/login" element={<AuthPageProtectWrapper><UserLogin /></AuthPageProtectWrapper>} />
@@ -117,7 +115,6 @@ function App() {
           {/* Catch all - Redirect to User Login */}
           <Route path="*" element={<AuthPageProtectWrapper><UserLogin /></AuthPageProtectWrapper>} />
         </Routes>
-      </HelmetProvider>
     </>
   );
 }

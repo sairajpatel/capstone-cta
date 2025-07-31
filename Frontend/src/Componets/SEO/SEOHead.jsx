@@ -1,5 +1,4 @@
-import React from 'react';
-import { Helmet } from 'react-helmet-async';
+import React, { useEffect } from 'react';
 import { generateSEOConfig, generateStructuredData } from '../../utils/seoUtils';
 
 const SEOHead = ({ 
@@ -27,54 +26,88 @@ const SEOHead = ({
     }
   });
 
-  return (
-    <Helmet>
-      {/* Primary Meta Tags */}
-      <title>{seoConfig.title}</title>
-      <meta name="description" content={seoConfig.description} />
-      <meta name="keywords" content={seoConfig.keywords} />
-      <meta name="author" content={seoConfig.author} />
-      <meta name="robots" content={seoConfig.robots} />
-      
-      {/* Open Graph / Facebook */}
-      <meta property="og:type" content={seoConfig.ogType} />
-      <meta property="og:url" content={seoConfig.ogUrl} />
-      <meta property="og:title" content={seoConfig.ogTitle} />
-      <meta property="og:description" content={seoConfig.ogDescription} />
-      <meta property="og:image" content={seoConfig.ogImage} />
-      <meta property="og:image:width" content={seoConfig.ogImageWidth} />
-      <meta property="og:image:height" content={seoConfig.ogImageHeight} />
-      <meta property="og:site_name" content={seoConfig.ogSiteName} />
-      <meta property="og:locale" content={seoConfig.ogLocale} />
-      
-      {/* Twitter */}
-      <meta name="twitter:card" content={seoConfig.twitterCard} />
-      <meta name="twitter:url" content={seoConfig.twitterUrl} />
-      <meta name="twitter:title" content={seoConfig.twitterTitle} />
-      <meta name="twitter:description" content={seoConfig.twitterDescription} />
-      <meta name="twitter:image" content={seoConfig.twitterImage} />
-      
-      {/* Additional SEO Meta Tags */}
-      <meta name="theme-color" content={seoConfig.themeColor} />
-      <meta name="msapplication-TileColor" content={seoConfig.msTileColor} />
-      <meta name="apple-mobile-web-app-capable" content={seoConfig.appleMobileWebAppCapable} />
-      <meta name="apple-mobile-web-app-status-bar-style" content={seoConfig.appleMobileWebAppStatusBarStyle} />
-      <meta name="apple-mobile-web-app-title" content={seoConfig.appleMobileWebAppTitle} />
-      
-      {/* Canonical URL */}
-      <link rel="canonical" href={seoConfig.canonicalUrl} />
-      
-      {/* Additional Meta Tags */}
-      {Object.entries(additionalMeta).map(([name, content]) => (
-        <meta key={name} name={name} content={content} />
-      ))}
-      
-      {/* Structured Data */}
-      <script type="application/ld+json">
-        {JSON.stringify(finalStructuredData)}
-      </script>
-    </Helmet>
-  );
+  useEffect(() => {
+    // Update document title
+    document.title = seoConfig.title;
+
+    // Create or update meta tags
+    const updateMetaTag = (name, content, property = false) => {
+      let meta = document.querySelector(`meta[${property ? 'property' : 'name'}="${name}"]`);
+      if (!meta) {
+        meta = document.createElement('meta');
+        if (property) {
+          meta.setAttribute('property', name);
+        } else {
+          meta.setAttribute('name', name);
+        }
+        document.head.appendChild(meta);
+      }
+      meta.setAttribute('content', content);
+    };
+
+    // Primary Meta Tags
+    updateMetaTag('description', seoConfig.description);
+    updateMetaTag('keywords', seoConfig.keywords);
+    updateMetaTag('author', seoConfig.author);
+    updateMetaTag('robots', seoConfig.robots);
+    
+    // Open Graph / Facebook
+    updateMetaTag('og:type', seoConfig.ogType, true);
+    updateMetaTag('og:url', seoConfig.ogUrl, true);
+    updateMetaTag('og:title', seoConfig.ogTitle, true);
+    updateMetaTag('og:description', seoConfig.ogDescription, true);
+    updateMetaTag('og:image', seoConfig.ogImage, true);
+    updateMetaTag('og:image:width', seoConfig.ogImageWidth, true);
+    updateMetaTag('og:image:height', seoConfig.ogImageHeight, true);
+    updateMetaTag('og:site_name', seoConfig.ogSiteName, true);
+    updateMetaTag('og:locale', seoConfig.ogLocale, true);
+    
+    // Twitter
+    updateMetaTag('twitter:card', seoConfig.twitterCard);
+    updateMetaTag('twitter:url', seoConfig.twitterUrl);
+    updateMetaTag('twitter:title', seoConfig.twitterTitle);
+    updateMetaTag('twitter:description', seoConfig.twitterDescription);
+    updateMetaTag('twitter:image', seoConfig.twitterImage);
+    
+    // Additional SEO Meta Tags
+    updateMetaTag('theme-color', seoConfig.themeColor);
+    updateMetaTag('msapplication-TileColor', seoConfig.msTileColor);
+    updateMetaTag('apple-mobile-web-app-capable', seoConfig.appleMobileWebAppCapable);
+    updateMetaTag('apple-mobile-web-app-status-bar-style', seoConfig.appleMobileWebAppStatusBarStyle);
+    updateMetaTag('apple-mobile-web-app-title', seoConfig.appleMobileWebAppTitle);
+    
+    // Additional Meta Tags
+    Object.entries(additionalMeta).forEach(([name, content]) => {
+      updateMetaTag(name, content);
+    });
+
+    // Update canonical URL
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.setAttribute('rel', 'canonical');
+      document.head.appendChild(canonical);
+    }
+    canonical.setAttribute('href', seoConfig.canonicalUrl);
+
+    // Update structured data
+    let structuredDataScript = document.querySelector('script[type="application/ld+json"]');
+    if (!structuredDataScript) {
+      structuredDataScript = document.createElement('script');
+      structuredDataScript.setAttribute('type', 'application/ld+json');
+      document.head.appendChild(structuredDataScript);
+    }
+    structuredDataScript.textContent = JSON.stringify(finalStructuredData);
+
+    // Cleanup function
+    return () => {
+      // Optionally clean up meta tags when component unmounts
+      // This is optional as new meta tags will override old ones
+    };
+  }, [seoConfig, finalStructuredData, additionalMeta]);
+
+  // This component doesn't render anything visible
+  return null;
 };
 
 export default SEOHead; 

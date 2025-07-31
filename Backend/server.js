@@ -24,6 +24,7 @@ const allowedOrigins = [
   'https://www.gatherguru.ca',
   
    // Add your production frontend URL
+   //add in
 ];
 //jay shree krishna
 // Configure CORS

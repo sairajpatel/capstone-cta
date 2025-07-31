@@ -10,7 +10,8 @@ const {
     testWebhook,
     testConfirmPayment,
     testWebhookPayment,
-    healthCheck
+    healthCheck,
+    debugEnv
 } = require('../controllers/paymentController');
 
 // Health check route (no authentication required)
@@ -18,6 +19,9 @@ router.get('/health', healthCheck);
 
 // Test route (no authentication required)
 router.get('/test-config', testStripeConfig);
+
+// Debug environment variables (no authentication required)
+router.get('/debug-env', debugEnv);
 
 // Payment routes (protected)
 router.post('/create-payment-intent', protect, createPaymentIntent);

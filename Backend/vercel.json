@@ -26,7 +26,8 @@
     "server.js": {
       "maxDuration": 30
     }
-  }
+  },
+  "public": true
 }
 
 

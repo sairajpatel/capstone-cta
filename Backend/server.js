@@ -9,13 +9,13 @@ dotenv.config();
 
 const app = express();
 
-// Middleware
+// Raw body parsing for Stripe webhooks - MUST come before JSON parser
+app.use('/payments/webhook', express.raw({ type: 'application/json' }));
+
+// Regular middleware for all other routes
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cookieParser());
-
-// Raw body parsing for Stripe webhooks
-app.use('/payments/webhook', express.raw({ type: 'application/json' }));
 
 // CORS configuration
 const allowedOrigins = [

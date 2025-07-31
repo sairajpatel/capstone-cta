@@ -26,7 +26,8 @@ router.post('/test-confirm-payment', protect, testConfirmPayment);
 router.get('/payment-status/:paymentIntentId', protect, getPaymentStatus);
 
 // Webhook route (unprotected - Stripe needs to access this)
-router.post('/webhook', express.raw({ type: 'application/json' }), handleWebhook);
+// Note: Raw body parsing is handled in server.js for this route
+router.post('/webhook', handleWebhook);
 router.get('/webhook-test', testWebhook);
 router.post('/webhook-test-payment', testWebhookPayment);
 

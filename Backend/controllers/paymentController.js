@@ -319,6 +319,7 @@ exports.handleWebhook = async (req, res) => {
     console.log('Method:', req.method);
     console.log('URL:', req.url);
     console.log('Headers:', req.headers);
+    console.log('Body type:', typeof req.body);
     console.log('Body length:', req.body ? req.body.length : 'No body');
     console.log('Stripe-Signature header:', req.headers['stripe-signature']);
     
@@ -353,11 +354,28 @@ exports.handleWebhook = async (req, res) => {
         });
     }
 
+    // Ensure req.body is a Buffer for Stripe webhook verification
+    if (!Buffer.isBuffer(req.body)) {
+        console.error('Request body is not a Buffer:', typeof req.body);
+        return res.status(400).json({
+            success: false,
+            message: 'Invalid request body format'
+        });
+    }
+
     let event;
 
     try {
         console.log('Attempting to construct event...');
-        event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+        
+        // In development, allow bypassing signature verification for testing
+        if (process.env.NODE_ENV === 'development' && req.headers['x-test-mode'] === 'true') {
+            console.log('Development mode: Bypassing signature verification');
+            event = JSON.parse(req.body.toString());
+        } else {
+            event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+        }
+        
         console.log('Webhook signature verified successfully');
         console.log('Event type:', event.type);
         console.log('Event ID:', event.id);

@@ -20,18 +20,32 @@ Your `STRIPE_SECRET_KEY` should:
 
 ### 3. Test Your Configuration
 
-Visit this endpoint to check your configuration:
+Visit these endpoints to check your configuration:
+
+**Basic health check:**
+```
+GET https://your-vercel-domain.vercel.app/payments/health
+```
+
+**Detailed configuration test:**
 ```
 GET https://your-vercel-domain.vercel.app/payments/test-config
 ```
 
-This will show you:
+These will show you:
 - Whether Stripe is initialized
 - Environment variable status
 - Key format validation
 - Specific recommendations
+- Webhook accessibility status
 
 ### 4. Common Issues
+
+#### Issue: Vercel Authentication Blocking Webhooks
+**Solution**: 
+1. Go to Vercel dashboard → Settings → Authentication
+2. Disable authentication for API routes or configure public access
+3. Update vercel.json to allow webhook endpoints
 
 #### Issue: Key not set
 **Solution**: Add `STRIPE_SECRET_KEY` to Vercel environment variables

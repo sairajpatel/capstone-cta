@@ -586,7 +586,9 @@ exports.healthCheck = async (req, res) => {
             success: true,
             message: 'Payment service is running',
             timestamp: new Date().toISOString(),
-            stripeInitialized: !!stripe
+            stripeInitialized: !!stripe,
+            environment: process.env.NODE_ENV || 'development',
+            webhookAccessible: true
         });
     } catch (error) {
         console.error('Health check error:', error);

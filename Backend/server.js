@@ -83,10 +83,15 @@ app.use((req, res, next) => {
 // Connect to MongoDB
 const connectDB = async () => {
   try {
+    console.log('Attempting to connect to MongoDB...');
     const mongoUri = process.env.MONGO_URI;
     if (!mongoUri) {
       console.error('MONGO_URI environment variable is not set');
-      process.exit(1);
+      // Don't exit in serverless environment
+      if (process.env.NODE_ENV !== 'production') {
+        process.exit(1);
+      }
+      return;
     }
     
     await mongoose.connect(mongoUri, {
@@ -96,7 +101,10 @@ const connectDB = async () => {
     console.log('MongoDB Connected successfully');
   } catch (err) {
     console.error('MongoDB connection error:', err);
-    process.exit(1);
+    // Don't exit in serverless environment
+    if (process.env.NODE_ENV !== 'production') {
+      process.exit(1);
+    }
   }
 };
 

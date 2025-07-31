@@ -7,12 +7,6 @@
     }
   ],
   "rewrites": [
-    { "source": "/payments/webhook", "destination": "/server.js" },
-    { "source": "/payments/webhook-test", "destination": "/server.js" },
-    { "source": "/payments/test-config", "destination": "/server.js" },
-    { "source": "/payments/health", "destination": "/server.js" },
-    { "source": "/auth/(.*)", "destination": "/server.js" },
-    { "source": "/api/(.*)", "destination": "/server.js" },
     { "source": "/(.*)", "destination": "/server.js" }
   ],
   "headers": [
@@ -38,8 +32,7 @@
     "server.js": {
       "maxDuration": 30
     }
-  },
-  "public": true
+  }
 }
 
 

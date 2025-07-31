@@ -2,13 +2,24 @@
 let stripe;
 try {
     if (!process.env.STRIPE_SECRET_KEY) {
-        console.warn('STRIPE_SECRET_KEY not found in environment variables');
+        console.error('STRIPE_SECRET_KEY not found in environment variables');
+        stripe = null;
+    } else if (process.env.STRIPE_SECRET_KEY.trim() === '') {
+        console.error('STRIPE_SECRET_KEY is empty in environment variables');
         stripe = null;
     } else {
-        stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+        // Validate the key format (should start with sk_)
+        if (!process.env.STRIPE_SECRET_KEY.startsWith('sk_')) {
+            console.error('STRIPE_SECRET_KEY format is invalid - should start with sk_');
+            stripe = null;
+        } else {
+            stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+            console.log('Stripe initialized successfully');
+        }
     }
 } catch (error) {
-    console.error('Error initializing Stripe:', error);
+    console.error('Error initializing Stripe:', error.message);
+    console.error('Full error:', error);
     stripe = null;
 }
 
@@ -325,10 +336,11 @@ exports.handleWebhook = async (req, res) => {
     
     // Check if Stripe is properly initialized
     if (!stripe) {
-        console.error('Stripe not initialized for webhook');
+        console.error('Stripe not initialized for webhook - check STRIPE_SECRET_KEY environment variable');
         return res.status(500).json({
             success: false,
-            message: 'Payment service is not configured'
+            message: 'Payment service is not configured. Please check server logs for details.',
+            error: 'STRIPE_SECRET_KEY not properly configured'
         });
     }
 
@@ -489,23 +501,40 @@ exports.testStripeConfig = async (req, res) => {
     try {
         console.log('=== STRIPE CONFIG TEST ===');
         console.log('Stripe initialized:', !!stripe);
-        console.log('Environment variables:', {
-            STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY ? 'SET' : 'NOT SET',
-            STRIPE_PUBLISHABLE_KEY: process.env.Publishable_Key ? 'SET' : 'NOT SET',
-            STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET ? 'SET' : 'NOT SET'
-        });
+        
+        // Check environment variables in detail
+        const envCheck = {
+            STRIPE_SECRET_KEY: {
+                exists: !!process.env.STRIPE_SECRET_KEY,
+                length: process.env.STRIPE_SECRET_KEY ? process.env.STRIPE_SECRET_KEY.length : 0,
+                startsWithSk: process.env.STRIPE_SECRET_KEY ? process.env.STRIPE_SECRET_KEY.startsWith('sk_') : false,
+                isEmpty: process.env.STRIPE_SECRET_KEY ? process.env.STRIPE_SECRET_KEY.trim() === '' : true
+            },
+            STRIPE_PUBLISHABLE_KEY: {
+                exists: !!process.env.Publishable_Key,
+                length: process.env.Publishable_Key ? process.env.Publishable_Key.length : 0,
+                startsWithPk: process.env.Publishable_Key ? process.env.Publishable_Key.startsWith('pk_') : false
+            },
+            STRIPE_WEBHOOK_SECRET: {
+                exists: !!process.env.STRIPE_WEBHOOK_SECRET,
+                length: process.env.STRIPE_WEBHOOK_SECRET ? process.env.STRIPE_WEBHOOK_SECRET.length : 0
+            }
+        };
+        
+        console.log('Environment variables check:', envCheck);
 
         if (!stripe) {
             return res.status(500).json({
                 success: false,
-                message: 'Stripe not initialized - missing STRIPE_SECRET_KEY',
+                message: 'Stripe not initialized - check STRIPE_SECRET_KEY configuration',
                 config: {
                     stripeInitialized: false,
-                    envVars: {
-                        STRIPE_SECRET_KEY: !!process.env.STRIPE_SECRET_KEY,
-                        STRIPE_PUBLISHABLE_KEY: !!process.env.Publishable_Key,
-                        STRIPE_WEBHOOK_SECRET: !!process.env.STRIPE_WEBHOOK_SECRET
-                    }
+                    envVars: envCheck,
+                    recommendations: [
+                        'Ensure STRIPE_SECRET_KEY is set in Vercel environment variables',
+                        'STRIPE_SECRET_KEY should start with "sk_"',
+                        'STRIPE_SECRET_KEY should not be empty or have extra whitespace'
+                    ]
                 }
             });
         }

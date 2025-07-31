@@ -20,29 +20,16 @@ Your `STRIPE_SECRET_KEY` should:
 
 ### 3. Test Your Configuration
 
-Visit these endpoints to check your configuration:
-
-**Basic health check:**
-```
-GET https://your-vercel-domain.vercel.app/payments/health
-```
-
-**Detailed configuration test:**
+Visit this endpoint to check your configuration:
 ```
 GET https://your-vercel-domain.vercel.app/payments/test-config
 ```
 
-**Environment variables debug:**
-```
-GET https://your-vercel-domain.vercel.app/payments/debug-env
-```
-
-These will show you:
+This will show you:
 - Whether Stripe is initialized
 - Environment variable status
 - Key format validation
 - Specific recommendations
-- Detailed environment variable information
 
 ### 4. Common Issues
 

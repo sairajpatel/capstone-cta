@@ -1,26 +1,26 @@
 // Initialize Stripe with proper error handling
-let stripe = null;
-
-// Only initialize Stripe if we have a valid secret key
-if (process.env.STRIPE_SECRET_KEY && 
-    process.env.STRIPE_SECRET_KEY.trim() !== '' && 
-    process.env.STRIPE_SECRET_KEY.startsWith('sk_')) {
-    try {
-        stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-        console.log('Stripe initialized successfully');
-    } catch (error) {
-        console.error('Error initializing Stripe:', error.message);
-        console.error('Full error:', error);
-        stripe = null;
-    }
-} else {
+let stripe;
+try {
     if (!process.env.STRIPE_SECRET_KEY) {
         console.error('STRIPE_SECRET_KEY not found in environment variables');
+        stripe = null;
     } else if (process.env.STRIPE_SECRET_KEY.trim() === '') {
         console.error('STRIPE_SECRET_KEY is empty in environment variables');
-    } else if (!process.env.STRIPE_SECRET_KEY.startsWith('sk_')) {
-        console.error('STRIPE_SECRET_KEY format is invalid - should start with sk_');
+        stripe = null;
+    } else {
+        // Validate the key format (should start with sk_)
+        if (!process.env.STRIPE_SECRET_KEY.startsWith('sk_')) {
+            console.error('STRIPE_SECRET_KEY format is invalid - should start with sk_');
+            stripe = null;
+        } else {
+            stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+            console.log('Stripe initialized successfully');
+        }
     }
+} catch (error) {
+    console.error('Error initializing Stripe:', error.message);
+    console.error('Full error:', error);
+    stripe = null;
 }
 
 const Booking = require('../models/bookingModel');
@@ -586,15 +586,7 @@ exports.healthCheck = async (req, res) => {
             success: true,
             message: 'Payment service is running',
             timestamp: new Date().toISOString(),
-            stripeInitialized: !!stripe,
-            envVars: {
-                STRIPE_SECRET_KEY: {
-                    exists: !!process.env.STRIPE_SECRET_KEY,
-                    length: process.env.STRIPE_SECRET_KEY ? process.env.STRIPE_SECRET_KEY.length : 0,
-                    startsWithSk: process.env.STRIPE_SECRET_KEY ? process.env.STRIPE_SECRET_KEY.startsWith('sk_') : false,
-                    isEmpty: process.env.STRIPE_SECRET_KEY ? process.env.STRIPE_SECRET_KEY.trim() === '' : true
-                }
-            }
+            stripeInitialized: !!stripe
         });
     } catch (error) {
         console.error('Health check error:', error);
@@ -714,57 +706,6 @@ exports.testWebhookPayment = async (req, res) => {
             success: false,
             message: 'Test webhook payment failed',
             error: error.message
-        });
-    }
-};
-
-// Debug environment variables endpoint
-exports.debugEnv = async (req, res) => {
-    try {
-        console.log('=== ENVIRONMENT DEBUG ===');
-        console.log('All environment variables:', Object.keys(process.env));
-        
-        const envInfo = {
-            STRIPE_SECRET_KEY: {
-                exists: !!process.env.STRIPE_SECRET_KEY,
-                length: process.env.STRIPE_SECRET_KEY ? process.env.STRIPE_SECRET_KEY.length : 0,
-                startsWithSk: process.env.STRIPE_SECRET_KEY ? process.env.STRIPE_SECRET_KEY.startsWith('sk_') : false,
-                isEmpty: process.env.STRIPE_SECRET_KEY ? process.env.STRIPE_SECRET_KEY.trim() === '' : true,
-                value: process.env.STRIPE_SECRET_KEY ? process.env.STRIPE_SECRET_KEY.substring(0, 10) + '...' : 'NOT_SET'
-            },
-            STRIPE_PUBLISHABLE_KEY: {
-                exists: !!process.env.Publishable_Key,
-                length: process.env.Publishable_Key ? process.env.Publishable_Key.length : 0,
-                startsWithPk: process.env.Publishable_Key ? process.env.Publishable_Key.startsWith('pk_') : false,
-                value: process.env.Publishable_Key ? process.env.Publishable_Key.substring(0, 10) + '...' : 'NOT_SET'
-            },
-            STRIPE_WEBHOOK_SECRET: {
-                exists: !!process.env.STRIPE_WEBHOOK_SECRET,
-                length: process.env.STRIPE_WEBHOOK_SECRET ? process.env.STRIPE_WEBHOOK_SECRET.length : 0,
-                value: process.env.STRIPE_WEBHOOK_SECRET ? process.env.STRIPE_WEBHOOK_SECRET.substring(0, 10) + '...' : 'NOT_SET'
-            },
-            NODE_ENV: process.env.NODE_ENV,
-            stripeInitialized: !!stripe
-        };
-        
-        console.log('Environment info:', envInfo);
-        
-        res.status(200).json({
-            success: true,
-            message: 'Environment debug info',
-            envInfo: envInfo,
-            recommendations: [
-                'Check Vercel environment variables',
-                'Ensure STRIPE_SECRET_KEY starts with sk_',
-                'Make sure keys are not empty',
-                'Remove any extra whitespace'
-            ]
-        });
-    } catch (error) {
-        console.error('Debug env error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Debug error: ' + error.message
         });
     }
 }; 

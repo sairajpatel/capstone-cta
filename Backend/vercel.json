@@ -7,11 +7,23 @@
     }
   ],
   "rewrites": [
+    { "source": "/payments/webhook", "destination": "/server.js" },
+    { "source": "/payments/webhook-test", "destination": "/server.js" },
+    { "source": "/payments/test-config", "destination": "/server.js" },
+    { "source": "/payments/health", "destination": "/server.js" },
     { "source": "/auth/(.*)", "destination": "/server.js" },
     { "source": "/api/(.*)", "destination": "/server.js" },
     { "source": "/(.*)", "destination": "/server.js" }
   ],
   "headers": [
+    {
+      "source": "/payments/webhook",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "POST,OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Stripe-Signature" }
+      ]
+    },
     {
       "source": "/(.*)",
       "headers": [
@@ -21,7 +33,13 @@
         { "key": "Access-Control-Allow-Headers", "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization" }
       ]
     }
-  ]
+  ],
+  "functions": {
+    "server.js": {
+      "maxDuration": 30
+    }
+  },
+  "public": true
 }
 
 

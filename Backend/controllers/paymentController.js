@@ -520,26 +520,30 @@ exports.healthCheck = async (req, res) => {
     }
 }; 
 
-// Test webhook endpoint
+// Simple webhook test endpoint
 exports.testWebhook = async (req, res) => {
     try {
-        console.log('=== WEBHOOK TEST ===');
+        console.log('=== WEBHOOK TEST ENDPOINT ===');
+        console.log('Method:', req.method);
+        console.log('URL:', req.url);
         console.log('Headers:', req.headers);
-        console.log('Body length:', req.body ? req.body.length : 'No body');
-        console.log('Content-Type:', req.headers['content-type']);
+        console.log('Environment variables:', {
+            STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY ? 'SET' : 'NOT SET',
+            STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET ? 'SET' : 'NOT SET'
+        });
         
         res.status(200).json({
             success: true,
             message: 'Webhook endpoint is accessible',
-            headers: req.headers,
-            bodyLength: req.body ? req.body.length : 0
+            timestamp: new Date().toISOString(),
+            stripeInitialized: !!stripe,
+            webhookSecretConfigured: !!process.env.STRIPE_WEBHOOK_SECRET
         });
     } catch (error) {
         console.error('Webhook test error:', error);
         res.status(500).json({
             success: false,
-            message: 'Webhook test failed',
-            error: error.message
+            message: 'Webhook test error: ' + error.message
         });
     }
 }; 

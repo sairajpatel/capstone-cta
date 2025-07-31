@@ -6,10 +6,15 @@
       "use": "@vercel/node"
     }
   ],
-  "rewrites": [
-    { "source": "/auth/(.*)", "destination": "/server.js" },
-    { "source": "/api/(.*)", "destination": "/server.js" },
-    { "source": "/(.*)", "destination": "/server.js" }
+  "routes": [
+    { "src": "/auth/(.*)", "dest": "/server.js" },
+    { "src": "/api/(.*)", "dest": "/server.js" },
+    { "src": "/events/(.*)", "dest": "/server.js" },
+    { "src": "/admin/(.*)", "dest": "/server.js" },
+    { "src": "/profile/(.*)", "dest": "/server.js" },
+    { "src": "/bookings/(.*)", "dest": "/server.js" },
+    { "src": "/payments/(.*)", "dest": "/server.js" },
+    { "src": "/(.*)", "dest": "/server.js" }
   ],
   "headers": [
     {
@@ -26,8 +31,7 @@
     "server.js": {
       "maxDuration": 30
     }
-  },
-  "public": true
+  }
 }
 
 

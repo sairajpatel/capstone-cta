@@ -22,9 +22,9 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
   'https://www.gatherguru.ca',
-  
-   // Add your production frontend URL
-   //add in
+  'https://capstone-cta.vercel.app',
+  'https://capstone-cta-frontend.vercel.app',
+  'https://gatherguru.vercel.app'
 ];
 //jay shree krishna
 // Configure CORS
@@ -82,17 +82,24 @@ app.use((req, res, next) => {
 // Connect to MongoDB
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/gatherguru', {
+    const mongoUri = process.env.MONGO_URI;
+    if (!mongoUri) {
+      console.error('MONGO_URI environment variable is not set');
+      process.exit(1);
+    }
+    
+    await mongoose.connect(mongoUri, {
       useNewUrlParser: true,
       useUnifiedTopology: true
     });
-    console.log('MongoDB Connected');
+    console.log('MongoDB Connected successfully');
   } catch (err) {
     console.error('MongoDB connection error:', err);
     process.exit(1);
   }
 };
 
+// Initialize database connection
 connectDB();
 
 // Import routes

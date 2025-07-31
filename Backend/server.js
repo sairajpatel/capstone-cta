@@ -14,6 +14,9 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cookieParser());
 
+// Raw body parsing for Stripe webhooks
+app.use('/payments/webhook', express.raw({ type: 'application/json' }));
+
 // CORS configuration
 const allowedOrigins = [
   'http://localhost:5173',

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useStripe, useElements, PaymentElement } from '@stripe/react-stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 import { toast } from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from '../../utils/axios';
 import stripePromise from '../../utils/stripe';
 
@@ -79,7 +79,7 @@ const CheckoutForm = ({ bookingId, amount, onSuccess, onError }) => {
       elements,
       confirmParams: {
         // Make sure to change this to your payment completion page
-        return_url: `${window.location.origin}/payment-success`,
+        return_url: `${window.location.origin}/payment-success?bookingId=${bookingId}`,
       },
     });
 
@@ -295,13 +295,26 @@ const PaymentComplete = () => {
 };
 
 // Main Payment Gateway Component
-const PaymentGateway = ({ bookingId, amount, onSuccess, onError }) => {
-  console.log('PaymentGateway component rendered with:', { bookingId, amount });
+const PaymentGateway = ({ onSuccess, onError }) => {
   const [clientSecret, setClientSecret] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
+    const bookingId = searchParams.get('bookingId');
+    const amount = searchParams.get('amount');
+
+    // Validate required parameters
+    if (!bookingId || !amount) {
+      setError('Missing booking information. Please try again.');
+      setLoading(false);
+      return;
+    }
+
+    // Store bookingId in localStorage as fallback
+    localStorage.setItem('currentBookingId', bookingId);
+
     const createPaymentIntent = async () => {
       try {
         setLoading(true);
@@ -350,10 +363,8 @@ const PaymentGateway = ({ bookingId, amount, onSuccess, onError }) => {
       }
     };
 
-    if (bookingId && amount) {
-      createPaymentIntent();
-    }
-  }, [bookingId, amount]);
+    createPaymentIntent();
+  }, [searchParams]);
 
   if (loading) {
     return (
@@ -402,8 +413,8 @@ const PaymentGateway = ({ bookingId, amount, onSuccess, onError }) => {
           stripe={stripePromise}
         >
           <CheckoutForm 
-            bookingId={bookingId}
-            amount={amount}
+            bookingId={searchParams.get('bookingId')}
+            amount={searchParams.get('amount')}
             onSuccess={onSuccess}
             onError={onError}
           />

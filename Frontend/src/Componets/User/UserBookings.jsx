@@ -138,7 +138,18 @@ const UserBookings = () => {
       <TextSizeControls />
       
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold mb-8">My Tickets</h1>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-2xl font-bold">My Tickets</h1>
+          <button
+            onClick={fetchBookings}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Refresh
+          </button>
+        </div>
 
         {error && (
           <div className="bg-red-50 text-red-700 p-4 rounded-lg mb-6">
@@ -201,9 +212,17 @@ const UserBookings = () => {
                       <div>
                         <p className="text-sm text-gray-600">Status</p>
                         <p className={`font-medium ${
-                          booking.status === 'confirmed' ? 'text-green-600' : 'text-red-600'
+                          booking.status === 'confirmed' ? 'text-green-600' : 
+                          booking.status === 'pending' ? 'text-yellow-600' :
+                          booking.status === 'cancelled' ? 'text-red-600' :
+                          booking.status === 'failed' ? 'text-red-600' :
+                          'text-gray-600'
                         }`}>
-                          {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                          {booking.status === 'confirmed' ? 'Confirmed' :
+                           booking.status === 'pending' ? 'Pending Payment' :
+                           booking.status === 'cancelled' ? 'Cancelled' :
+                           booking.status === 'failed' ? 'Payment Failed' :
+                           booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
                         </p>
                       </div>
                     </div>
@@ -221,6 +240,34 @@ const UserBookings = () => {
                         </svg>
                         Cancel Booking
                       </button>
+                    </div>
+                  )}
+
+                  {booking.status === 'pending' && booking.totalAmount > 0 && (
+                    <div className="mt-6 pt-4 border-t">
+                      <button
+                        onClick={() => {
+                          const params = new URLSearchParams({
+                            bookingId: booking._id,
+                            amount: booking.totalAmount
+                          });
+                          window.location.href = `/payment?${params.toString()}`;
+                        }}
+                        className="w-full h-11 flex items-center justify-center px-6 text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-all duration-200 font-medium gap-2"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                        </svg>
+                        Complete Payment
+                      </button>
+                    </div>
+                  )}
+
+                  {booking.status === 'pending' && booking.totalAmount === 0 && (
+                    <div className="mt-6 pt-4 border-t">
+                      <div className="text-center">
+                        <p className="text-sm text-gray-600">Free event - No payment required</p>
+                      </div>
                     </div>
                   )}
 

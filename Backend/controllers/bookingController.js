@@ -59,7 +59,9 @@ exports.createBooking = async (req, res) => {
       event: eventId,
       ticketType,
       quantity,
-      totalAmount
+      totalAmount,
+      // Auto-confirm free events
+      status: totalAmount === 0 ? 'confirmed' : 'pending'
     });
 
     // Populate event and user details with specific fields

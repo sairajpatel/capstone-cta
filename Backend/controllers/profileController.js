@@ -3,6 +3,7 @@ const UserProfile = require('../models/userProfileModel');
 const cloudinary = require('../config/cloudinary');
 const User = require('../models/userModel'); // Added for toggleEventInterest and getInterestedEvents
 const { Event } = require('../models/eventModel'); // Fixed Event model import
+const bcrypt = require('bcryptjs');
 
 // Get user profile
 const getUserProfile = async (req, res) => {
@@ -284,11 +285,176 @@ const getInterestedEvents = async (req, res) => {
   }
 };
 
+// Change email functionality
+const changeEmail = async (req, res) => {
+  try {
+    const { currentEmail, newEmail, password } = req.body;
+
+    // Validate required fields
+    if (!currentEmail || !newEmail || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Current email, new email, and password are required'
+      });
+    }
+
+    // Check if current email matches user's email
+    if (currentEmail !== req.user.email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Current email does not match your account email'
+      });
+    }
+
+    // Validate new email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(newEmail)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please enter a valid email address'
+      });
+    }
+
+    // Check if new email is different from current email
+    if (currentEmail === newEmail) {
+      return res.status(400).json({
+        success: false,
+        message: 'New email must be different from current email'
+      });
+    }
+
+    // Verify password
+    const isPasswordValid = await bcrypt.compare(password, req.user.password);
+    if (!isPasswordValid) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid password'
+      });
+    }
+
+    // Check if new email already exists
+    const existingUser = await User.findOne({ email: newEmail });
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email address is already in use'
+      });
+    }
+
+    // Update user's email
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user._id,
+      { email: newEmail },
+      { new: true }
+    );
+
+    res.json({
+      success: true,
+      message: 'Email updated successfully',
+      user: {
+        id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        role: updatedUser.role
+      }
+    });
+
+  } catch (error) {
+    console.error('Error in changeEmail:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating email',
+      error: error.message
+    });
+  }
+};
+
+// Change password functionality
+const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+
+    // Validate required fields
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Current password, new password, and confirm password are required'
+      });
+    }
+
+    // Verify current password
+    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, req.user.password);
+    if (!isCurrentPasswordValid) {
+      return res.status(400).json({
+        success: false,
+        message: 'Current password is incorrect'
+      });
+    }
+
+    // Check if new password is different from current password
+    const isNewPasswordSame = await bcrypt.compare(newPassword, req.user.password);
+    if (isNewPasswordSame) {
+      return res.status(400).json({
+        success: false,
+        message: 'New password must be different from current password'
+      });
+    }
+
+    // Validate new password strength
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 6 characters long'
+      });
+    }
+
+    // Check if new password matches confirm password
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'New password and confirm password do not match'
+      });
+    }
+
+    // Hash new password
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+    // Update user's password
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user._id,
+      { password: hashedPassword },
+      { new: true }
+    );
+
+    res.json({
+      success: true,
+      message: 'Password updated successfully',
+      user: {
+        id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        role: updatedUser.role
+      }
+    });
+
+  } catch (error) {
+    console.error('Error in changePassword:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating password',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   getUserProfile,
   updateProfile,
   uploadProfileImage,
   deleteProfileImage,
   toggleEventInterest,
-  getInterestedEvents
+  getInterestedEvents,
+  changeEmail,
+  changePassword
 }; 

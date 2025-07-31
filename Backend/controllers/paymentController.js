@@ -13,7 +13,7 @@ try {
 }
 
 const Booking = require('../models/bookingModel');
-const Event = require('../models/eventModel');
+const { Event } = require('../models/eventModel');
 
 // Create PaymentIntent for booking
 exports.createPaymentIntent = async (req, res) => {
@@ -172,8 +172,17 @@ exports.createPaymentIntent = async (req, res) => {
 // Confirm payment and update booking
 exports.confirmPayment = async (req, res) => {
     try {
+        console.log('=== CONFIRM PAYMENT START ===');
+        console.log('Request body:', req.body);
+        console.log('User:', req.user);
+        
+        // Test model imports
+        console.log('Booking model:', typeof Booking);
+        console.log('Event model:', typeof Event);
+        
         // Check if Stripe is properly initialized
         if (!stripe) {
+            console.error('Stripe not initialized');
             return res.status(500).json({
                 success: false,
                 message: 'Payment service is not configured. Please contact support.'
@@ -181,11 +190,35 @@ exports.confirmPayment = async (req, res) => {
         }
 
         const { paymentIntentId, bookingId } = req.body;
+        console.log('Confirming payment:', { paymentIntentId, bookingId });
+
+        // Validate required fields
+        if (!paymentIntentId || !bookingId) {
+            console.error('Missing required fields:', { paymentIntentId, bookingId });
+            return res.status(400).json({
+                success: false,
+                message: 'Payment intent ID and booking ID are required'
+            });
+        }
 
         // Retrieve the payment intent from Stripe
+        console.log('Retrieving payment intent from Stripe...');
         const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+        console.log('Payment intent status:', paymentIntent.status);
 
         if (paymentIntent.status === 'succeeded') {
+            console.log('Payment succeeded, updating booking...');
+            
+            // Find the booking first to validate it exists
+            const existingBooking = await Booking.findById(bookingId);
+            if (!existingBooking) {
+                console.error('Booking not found:', bookingId);
+                return res.status(404).json({
+                    success: false,
+                    message: 'Booking not found'
+                });
+            }
+
             // Update booking status
             const booking = await Booking.findByIdAndUpdate(
                 bookingId,
@@ -197,22 +230,38 @@ exports.confirmPayment = async (req, res) => {
                 { new: true }
             );
 
+            console.log('Booking updated successfully:', booking ? 'YES' : 'NO');
+
             // Update event ticket availability
-            const event = await Event.findById(booking.event);
-            if (event) {
-                const ticketType = event.ticketing.find(t => t.name === booking.ticketType);
-                if (ticketType) {
-                    ticketType.quantity -= booking.quantity;
-                    await event.save();
+            if (booking && booking.event) {
+                console.log('Updating event ticket availability...');
+                const event = await Event.findById(booking.event);
+                if (event && event.ticketing) {
+                    const ticketType = event.ticketing.find(t => t.name === booking.ticketType);
+                    if (ticketType) {
+                        console.log('Updating ticket quantity:', { 
+                            before: ticketType.quantity, 
+                            after: ticketType.quantity - booking.quantity 
+                        });
+                        ticketType.quantity -= booking.quantity;
+                        await event.save();
+                        console.log('Event ticket availability updated');
+                    } else {
+                        console.log('Ticket type not found in event');
+                    }
+                } else {
+                    console.log('Event or ticketing not found');
                 }
             }
 
+            console.log('=== CONFIRM PAYMENT SUCCESS ===');
             res.status(200).json({
                 success: true,
                 message: 'Payment confirmed successfully',
                 booking: booking
             });
         } else {
+            console.log('Payment not successful, status:', paymentIntent.status);
             res.status(400).json({
                 success: false,
                 message: 'Payment not successful'
@@ -220,10 +269,15 @@ exports.confirmPayment = async (req, res) => {
         }
 
     } catch (error) {
-        console.error('Payment confirmation error:', error);
+        console.error('=== CONFIRM PAYMENT ERROR ===');
+        console.error('Error type:', error.constructor.name);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+        
         res.status(500).json({
             success: false,
-            message: 'Error confirming payment'
+            message: 'Error confirming payment',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
 };
@@ -261,6 +315,12 @@ exports.getPaymentStatus = async (req, res) => {
 
 // Webhook handler for Stripe events
 exports.handleWebhook = async (req, res) => {
+    console.log('=== WEBHOOK RECEIVED ===');
+    console.log('Method:', req.method);
+    console.log('URL:', req.url);
+    console.log('Headers:', req.headers);
+    console.log('Body length:', req.body ? req.body.length : 'No body');
+    
     // Check if Stripe is properly initialized
     if (!stripe) {
         console.error('Stripe not initialized for webhook');
@@ -285,6 +345,9 @@ exports.handleWebhook = async (req, res) => {
 
     try {
         event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+        console.log('Webhook signature verified successfully');
+        console.log('Event type:', event.type);
+        console.log('Event ID:', event.id);
     } catch (err) {
         console.error('Webhook signature verification failed:', err.message);
         return res.status(400).send(`Webhook Error: ${err.message}`);
@@ -295,33 +358,45 @@ exports.handleWebhook = async (req, res) => {
         case 'payment_intent.succeeded':
             const paymentIntent = event.data.object;
             console.log('Payment succeeded:', paymentIntent.id);
+            console.log('Payment metadata:', paymentIntent.metadata);
             
             // Update booking status
             if (paymentIntent.metadata.bookingId) {
-                await Booking.findByIdAndUpdate(
+                console.log('Updating booking:', paymentIntent.metadata.bookingId);
+                const updatedBooking = await Booking.findByIdAndUpdate(
                     paymentIntent.metadata.bookingId,
                     {
                         status: 'confirmed',
                         paymentIntentId: paymentIntent.id,
                         paidAt: new Date()
-                    }
+                    },
+                    { new: true }
                 );
+                console.log('Booking updated successfully:', updatedBooking ? 'YES' : 'NO');
+            } else {
+                console.log('No bookingId found in payment metadata');
             }
             break;
 
         case 'payment_intent.payment_failed':
             const failedPayment = event.data.object;
             console.log('Payment failed:', failedPayment.id);
+            console.log('Failed payment metadata:', failedPayment.metadata);
             
             // Update booking status to failed
             if (failedPayment.metadata.bookingId) {
-                await Booking.findByIdAndUpdate(
+                console.log('Updating failed booking:', failedPayment.metadata.bookingId);
+                const updatedBooking = await Booking.findByIdAndUpdate(
                     failedPayment.metadata.bookingId,
                     {
                         status: 'failed',
                         paymentIntentId: failedPayment.id
-                    }
+                    },
+                    { new: true }
                 );
+                console.log('Failed booking updated successfully:', updatedBooking ? 'YES' : 'NO');
+            } else {
+                console.log('No bookingId found in failed payment metadata');
             }
             break;
 
@@ -329,6 +404,7 @@ exports.handleWebhook = async (req, res) => {
             console.log(`Unhandled event type ${event.type}`);
     }
 
+    console.log('=== WEBHOOK PROCESSING COMPLETE ===');
     res.json({ received: true });
 }; 
 
@@ -412,6 +488,115 @@ exports.healthCheck = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Payment service error'
+        });
+    }
+}; 
+
+// Test webhook endpoint
+exports.testWebhook = async (req, res) => {
+    try {
+        console.log('=== WEBHOOK TEST ===');
+        console.log('Headers:', req.headers);
+        console.log('Body length:', req.body ? req.body.length : 'No body');
+        console.log('Content-Type:', req.headers['content-type']);
+        
+        res.status(200).json({
+            success: true,
+            message: 'Webhook endpoint is accessible',
+            headers: req.headers,
+            bodyLength: req.body ? req.body.length : 0
+        });
+    } catch (error) {
+        console.error('Webhook test error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Webhook test failed',
+            error: error.message
+        });
+    }
+}; 
+
+// Test confirmPayment endpoint
+exports.testConfirmPayment = async (req, res) => {
+    try {
+        console.log('=== TEST CONFIRM PAYMENT ===');
+        console.log('Request body:', req.body);
+        console.log('User:', req.user);
+        
+        // Test model imports
+        console.log('Booking model:', typeof Booking);
+        console.log('Event model:', typeof Event);
+        
+        // Test Stripe
+        console.log('Stripe initialized:', !!stripe);
+        
+        res.status(200).json({
+            success: true,
+            message: 'Test endpoint working',
+            models: {
+                booking: typeof Booking,
+                event: typeof Event
+            },
+            stripe: !!stripe
+        });
+    } catch (error) {
+        console.error('Test confirmPayment error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Test failed',
+            error: error.message
+        });
+    }
+}; 
+
+// Test webhook with simulated payment success
+exports.testWebhookPayment = async (req, res) => {
+    try {
+        console.log('=== TEST WEBHOOK PAYMENT ===');
+        
+        // Simulate a payment success event
+        const testPaymentIntent = {
+            id: 'pi_test_' + Date.now(),
+            status: 'succeeded',
+            metadata: {
+                bookingId: req.body.bookingId || 'test_booking_id'
+            }
+        };
+        
+        console.log('Simulating payment success for booking:', testPaymentIntent.metadata.bookingId);
+        
+        // Update booking status
+        if (testPaymentIntent.metadata.bookingId) {
+            const updatedBooking = await Booking.findByIdAndUpdate(
+                testPaymentIntent.metadata.bookingId,
+                {
+                    status: 'confirmed',
+                    paymentIntentId: testPaymentIntent.id,
+                    paidAt: new Date()
+                },
+                { new: true }
+            );
+            
+            console.log('Test booking updated:', updatedBooking ? 'YES' : 'NO');
+            
+            res.status(200).json({
+                success: true,
+                message: 'Test webhook payment processed',
+                booking: updatedBooking
+            });
+        } else {
+            res.status(400).json({
+                success: false,
+                message: 'No bookingId provided for test'
+            });
+        }
+        
+    } catch (error) {
+        console.error('Test webhook payment error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Test webhook payment failed',
+            error: error.message
         });
     }
 }; 

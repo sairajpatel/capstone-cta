@@ -3,12 +3,14 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { getPaymentStatus } from '../../utils/paymentApi';
+import axios from '../../utils/axios';
 
 const PaymentSuccess = () => {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const [paymentStatus, setPaymentStatus] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [paymentConfirmed, setPaymentConfirmed] = useState(false);
 
     useEffect(() => {
         const clientSecret = searchParams.get('payment_intent_client_secret');
@@ -31,6 +33,33 @@ const PaymentSuccess = () => {
                 setPaymentStatus(response.status);
                 if (response.status === 'succeeded') {
                     toast.success('Payment successful!');
+                    
+                    // Get bookingId from URL params or localStorage
+                    const bookingId = searchParams.get('bookingId') || localStorage.getItem('currentBookingId');
+                    
+                    if (bookingId) {
+                        // Call confirmPayment endpoint
+                        try {
+                            const confirmData = { 
+                                paymentIntentId,
+                                bookingId 
+                            };
+                            console.log('Sending confirmPayment data:', confirmData);
+                            
+                            const response = await axios.post('/payments/confirm-payment', confirmData);
+                            console.log('Payment confirmed successfully:', response.data);
+                            setPaymentConfirmed(true);
+                            
+                            // Clean up localStorage
+                            localStorage.removeItem('currentBookingId');
+                        } catch (confirmError) {
+                            console.error('Error confirming payment:', confirmError);
+                            console.error('Error response:', confirmError.response?.data);
+                            // Don't show error to user as payment was successful
+                        }
+                    } else {
+                        console.log('No bookingId found for confirmation');
+                    }
                 }
             }
         } catch (error) {
@@ -82,7 +111,12 @@ const PaymentSuccess = () => {
                         </motion.div>
                         
                         <h1 className="text-3xl font-bold text-gray-800 mb-2">Payment Successful!</h1>
-                        <p className="text-gray-600 mb-8">Your booking has been confirmed and payment processed successfully.</p>
+                        <p className="text-gray-600 mb-8">
+                            {paymentConfirmed 
+                                ? "Your booking has been confirmed and payment processed successfully." 
+                                : "Your payment has been processed successfully. Confirming your booking..."
+                            }
+                        </p>
                         
                         <div className="space-y-4">
                             <motion.button

@@ -355,8 +355,13 @@ exports.handleWebhook = async (req, res) => {
     }
 
     // Ensure req.body is a Buffer for Stripe webhook verification
-    if (!Buffer.isBuffer(req.body)) {
-        console.error('Request body is not a Buffer:', typeof req.body);
+    let rawBody;
+    if (Buffer.isBuffer(req.body)) {
+        rawBody = req.body;
+    } else if (typeof req.body === 'string') {
+        rawBody = Buffer.from(req.body, 'utf8');
+    } else {
+        console.error('Request body is not in the expected format:', typeof req.body);
         return res.status(400).json({
             success: false,
             message: 'Invalid request body format'
@@ -371,9 +376,9 @@ exports.handleWebhook = async (req, res) => {
         // In development, allow bypassing signature verification for testing
         if (process.env.NODE_ENV === 'development' && req.headers['x-test-mode'] === 'true') {
             console.log('Development mode: Bypassing signature verification');
-            event = JSON.parse(req.body.toString());
+            event = JSON.parse(rawBody.toString());
         } else {
-            event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+            event = stripe.webhooks.constructEvent(rawBody, sig, endpointSecret);
         }
         
         console.log('Webhook signature verified successfully');
@@ -443,6 +448,31 @@ exports.handleWebhook = async (req, res) => {
                 }
             } else {
                 console.log('No bookingId found in failed payment metadata');
+            }
+            break;
+
+        case 'checkout.session.completed':
+            const session = event.data.object;
+            console.log('Checkout session completed:', session.id);
+            console.log('Session metadata:', session.metadata);
+            
+            // Handle checkout session completion if needed
+            if (session.metadata.bookingId) {
+                console.log('Updating booking from checkout session:', session.metadata.bookingId);
+                try {
+                    const updatedBooking = await Booking.findByIdAndUpdate(
+                        session.metadata.bookingId,
+                        {
+                            status: 'confirmed',
+                            paymentIntentId: session.payment_intent,
+                            paidAt: new Date()
+                        },
+                        { new: true }
+                    );
+                    console.log('Booking updated from checkout session:', updatedBooking ? 'YES' : 'NO');
+                } catch (updateError) {
+                    console.error('Error updating booking from checkout session:', updateError);
+                }
             }
             break;
 

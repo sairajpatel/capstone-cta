@@ -10,6 +10,7 @@ dotenv.config();
 const app = express();
 
 // Raw body parsing for Stripe webhooks - MUST come before JSON parser
+// This ensures the webhook route gets the raw body as a Buffer
 app.use('/payments/webhook', express.raw({ type: 'application/json' }));
 
 // Regular middleware for all other routes

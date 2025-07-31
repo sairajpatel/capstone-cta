@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
+import SEOHead from '../SEO/SEOHead';
 import UserNavbar from './UserNavbar';
 import UserFooter from './UserFooter';
 import AccountStatusAlert from './AccountStatusAlert';
@@ -469,9 +470,53 @@ export const UserDashboard = () => {
     );
   };
 
-  return (
-    <div className="min-h-screen bg-[#1C1B29]">
-      <UserNavbar />
+      return (
+      <div className="min-h-screen bg-[#1C1B29]">
+        <SEOHead 
+          pageConfig={{
+            title: "GatherGuru - Discover Amazing Events Near You | Event Discovery Platform",
+            description: "Explore and discover the best events, concerts, workshops, and gatherings in your area. Find local events, book tickets, and never miss out on amazing experiences with GatherGuru's comprehensive event discovery platform.",
+            url: "https://gatherguru.ca/user/dashboard",
+            ogImage: "https://gatherguru.ca/og-dashboard-image.jpg",
+            twitterImage: "https://gatherguru.ca/twitter-dashboard-image.jpg"
+          }}
+          structuredData={{
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            "name": "GatherGuru Event Discovery Dashboard",
+            "description": "Discover and explore amazing events, concerts, workshops, and gatherings in your area. Find local events, book tickets, and never miss out on amazing experiences.",
+            "url": "https://gatherguru.ca/user/dashboard",
+            "mainEntity": {
+              "@type": "WebSite",
+              "name": "GatherGuru",
+              "url": "https://gatherguru.ca/",
+              "description": "Event discovery and booking platform",
+              "potentialAction": {
+                "@type": "SearchAction",
+                "target": "https://gatherguru.ca/events?query={search_term_string}",
+                "query-input": "required name=search_term_string"
+              }
+            },
+            "breadcrumb": {
+              "@type": "BreadcrumbList",
+              "itemListElement": [
+                {
+                  "@type": "ListItem",
+                  "position": 1,
+                  "name": "Home",
+                  "item": "https://gatherguru.ca/"
+                },
+                {
+                  "@type": "ListItem",
+                  "position": 2,
+                  "name": "Dashboard",
+                  "item": "https://gatherguru.ca/user/dashboard"
+                }
+              ]
+            }
+          }}
+        />
+        <UserNavbar />
       <TextSizeControls />
       {/* Temporarily disabled until status is properly implemented */}
       {/* <AccountStatusAlert /> */}

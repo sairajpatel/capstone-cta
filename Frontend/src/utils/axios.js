@@ -8,9 +8,7 @@ const hostname = window.location.hostname;
 // Determine the API URL based on the environment and hostname
 const getApiUrl = () => {
   // Check if we're in development mode (localhost)
-  if (hostname === 'localhost' || hostname === '127.0.0.1') {
-    return 'http://localhost:5000';
-  }
+
   
   // Use production URL for live site
   return 'https://capstone-cta-backend-latest.vercel.app';

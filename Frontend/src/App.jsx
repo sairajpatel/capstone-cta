@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
 import React from "react";
 import { Toaster } from 'react-hot-toast';
+import { HelmetProvider } from 'react-helmet-async';
 import UserProfileInitializer from './Componets/User/UserProfileInitializer';
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./Componets/AdminDashboard";
@@ -42,79 +43,81 @@ function App() {
   return (
     <>
       <Toaster position="top-right" />
-      <UserProfileInitializer />
-      <Routes>
-        {/* Root Route - User Login */}
-        <Route path="/" element={<AuthPageProtectWrapper><UserLogin /></AuthPageProtectWrapper>} />
-        <Route path="/user/login" element={<AuthPageProtectWrapper><UserLogin /></AuthPageProtectWrapper>} />
+      <HelmetProvider>
+        <UserProfileInitializer />
+        <Routes>
+          {/* Root Route - User Login */}
+          <Route path="/" element={<AuthPageProtectWrapper><UserLogin /></AuthPageProtectWrapper>} />
+          <Route path="/user/login" element={<AuthPageProtectWrapper><UserLogin /></AuthPageProtectWrapper>} />
 
-        {/* User Routes */}
-        <Route path="/user/signup" element={<AuthPageProtectWrapper><UserSignup /></AuthPageProtectWrapper>} />
-        <Route path="/user/dashboard" element={<UserProtection><UserDashboard /></UserProtection>} />
-        <Route path="/user/profile" element={<UserProtection><UserProfile /></UserProtection>} />
-        <Route path="/user/bookings" element={<UserProtection><UserBookings /></UserProtection>} />
-        <Route path="/events" element={<ExploreEvents />} />
-        <Route path="/events/:eventId" element={<UserEventDetails />} />
-        <Route path="/about" element={<AboutUs />} />
-        <Route path="/contact" element={<ContactUs />} />
-        <Route path="/verify-ticket/:bookingId/:ticketNumber" element={<TicketVerification />} />
-        <Route
-          path="/user/interested"
-          element={
-            <UserProtection>
-              <InterestedEvents />
-            </UserProtection>
-          }
-        />
-        <Route path="/payment-complete" element={<PaymentComplete />} />
-        <Route path="/payment-success" element={<PaymentSuccess />} />
-        <Route path="/payment" element={<UserProtection><PaymentGateway /></UserProtection>} />
+          {/* User Routes */}
+          <Route path="/user/signup" element={<AuthPageProtectWrapper><UserSignup /></AuthPageProtectWrapper>} />
+          <Route path="/user/dashboard" element={<UserProtection><UserDashboard /></UserProtection>} />
+          <Route path="/user/profile" element={<UserProtection><UserProfile /></UserProtection>} />
+          <Route path="/user/bookings" element={<UserProtection><UserBookings /></UserProtection>} />
+          <Route path="/events" element={<ExploreEvents />} />
+          <Route path="/events/:eventId" element={<UserEventDetails />} />
+          <Route path="/about" element={<AboutUs />} />
+          <Route path="/contact" element={<ContactUs />} />
+          <Route path="/verify-ticket/:bookingId/:ticketNumber" element={<TicketVerification />} />
+          <Route
+            path="/user/interested"
+            element={
+              <UserProtection>
+                <InterestedEvents />
+              </UserProtection>
+            }
+          />
+          <Route path="/payment-complete" element={<PaymentComplete />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
+          <Route path="/payment" element={<UserProtection><PaymentGateway /></UserProtection>} />
 
-        {/* Organizer Routes */}
-        <Route path="/organizer/login" element={<AuthPageProtectWrapper><OrganizerLogin /></AuthPageProtectWrapper>} />
-        <Route path="/organizer/signup" element={<AuthPageProtectWrapper><OrganizerSignup /></AuthPageProtectWrapper>} />
-        <Route path="/organizer/dashboard" element={<OrganizerProtectWrapper><OrganizerDashboard /></OrganizerProtectWrapper>} />
-        <Route path="/organizer/create-event" element={<OrganizerProtectWrapper><BasicDetails /></OrganizerProtectWrapper>} />
-        <Route path="/organizer/create-event/edit/:eventId" element={<OrganizerProtectWrapper><EventSteps /></OrganizerProtectWrapper>} />
-        <Route path="/organizer/events/:eventId" element={<OrganizerProtectWrapper><EventDetails /></OrganizerProtectWrapper>} />
-        <Route
-          path="/organizer/create-event/banner/:eventId"
-          element={
-            <OrganizerProtectWrapper>
-              <BannerUpload />
-            </OrganizerProtectWrapper>
-          }
-        />
-        <Route
-          path="/organizer/create-event/ticketing/:eventId"
-          element={
-            <OrganizerProtectWrapper>
-              <Ticketing />
-            </OrganizerProtectWrapper>
-          }
-        />
-        <Route
-          path="/organizer/create-event/review/:eventId"
-          element={
-            <OrganizerProtectWrapper>
-              <Review />
-            </OrganizerProtectWrapper>
-          }
-        />
+          {/* Organizer Routes */}
+          <Route path="/organizer/login" element={<AuthPageProtectWrapper><OrganizerLogin /></AuthPageProtectWrapper>} />
+          <Route path="/organizer/signup" element={<AuthPageProtectWrapper><OrganizerSignup /></AuthPageProtectWrapper>} />
+          <Route path="/organizer/dashboard" element={<OrganizerProtectWrapper><OrganizerDashboard /></OrganizerProtectWrapper>} />
+          <Route path="/organizer/create-event" element={<OrganizerProtectWrapper><BasicDetails /></OrganizerProtectWrapper>} />
+          <Route path="/organizer/create-event/edit/:eventId" element={<OrganizerProtectWrapper><EventSteps /></OrganizerProtectWrapper>} />
+          <Route path="/organizer/events/:eventId" element={<OrganizerProtectWrapper><EventDetails /></OrganizerProtectWrapper>} />
+          <Route
+            path="/organizer/create-event/banner/:eventId"
+            element={
+              <OrganizerProtectWrapper>
+                <BannerUpload />
+              </OrganizerProtectWrapper>
+            }
+          />
+          <Route
+            path="/organizer/create-event/ticketing/:eventId"
+            element={
+              <OrganizerProtectWrapper>
+                <Ticketing />
+              </OrganizerProtectWrapper>
+            }
+          />
+          <Route
+            path="/organizer/create-event/review/:eventId"
+            element={
+              <OrganizerProtectWrapper>
+                <Review />
+              </OrganizerProtectWrapper>
+            }
+          />
 
-        {/* Admin Routes */}
-        <Route path="/admin/login" element={<AuthPageProtectWrapper><AdminLogin /></AuthPageProtectWrapper>} />
-        <Route path="/admin/dashboard" element={<AdminProtectWrapper><AdminDashboard /></AdminProtectWrapper>} />
-        <Route path="/admin/events" element={<AdminProtectWrapper><AdminEventList /></AdminProtectWrapper>} />
-        <Route path="/admin/events/edit/:eventId" element={<AdminProtectWrapper><AdminEventEdit /></AdminProtectWrapper>} />
-        <Route path="/admin/users" element={<AdminProtectWrapper><AdminUserList /></AdminProtectWrapper>} />
-        <Route path="/admin/users/:userId" element={<AdminProtectWrapper><AdminUserProfileView /></AdminProtectWrapper>} />
-        <Route path="/admin/tickets" element={<AdminProtectWrapper><AdminTicketAnalytics /></AdminProtectWrapper>} />
-        <Route path="/admin/profile" element={<AdminProtectWrapper><AdminProfile /></AdminProtectWrapper>} />
+          {/* Admin Routes */}
+          <Route path="/admin/login" element={<AuthPageProtectWrapper><AdminLogin /></AuthPageProtectWrapper>} />
+          <Route path="/admin/dashboard" element={<AdminProtectWrapper><AdminDashboard /></AdminProtectWrapper>} />
+          <Route path="/admin/events" element={<AdminProtectWrapper><AdminEventList /></AdminProtectWrapper>} />
+          <Route path="/admin/events/edit/:eventId" element={<AdminProtectWrapper><AdminEventEdit /></AdminProtectWrapper>} />
+          <Route path="/admin/users" element={<AdminProtectWrapper><AdminUserList /></AdminProtectWrapper>} />
+          <Route path="/admin/users/:userId" element={<AdminProtectWrapper><AdminUserProfileView /></AdminProtectWrapper>} />
+          <Route path="/admin/tickets" element={<AdminProtectWrapper><AdminTicketAnalytics /></AdminProtectWrapper>} />
+          <Route path="/admin/profile" element={<AdminProtectWrapper><AdminProfile /></AdminProtectWrapper>} />
 
-        {/* Catch all - Redirect to User Login */}
-        <Route path="*" element={<AuthPageProtectWrapper><UserLogin /></AuthPageProtectWrapper>} />
-      </Routes>
+          {/* Catch all - Redirect to User Login */}
+          <Route path="*" element={<AuthPageProtectWrapper><UserLogin /></AuthPageProtectWrapper>} />
+        </Routes>
+      </HelmetProvider>
     </>
   );
 }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import SEOHead from '../SEO/SEOHead';
 import UserNavbar from './UserNavbar';
 import UserFooter from './UserFooter';
 import axios from '../../utils/axios';
@@ -284,6 +285,50 @@ const ExploreEvents = () => {
 
   return (
     <div className="min-h-screen bg-[#1C1B29]">
+      <SEOHead 
+        pageConfig={{
+          title: "Explore Events - GatherGuru | Find Local Events Near You",
+          description: "Browse and discover amazing events in your area. From concerts and workshops to corporate events and cultural festivals, find the perfect event for you with advanced search and filtering options.",
+          url: "https://gatherguru.ca/events",
+          ogImage: "https://gatherguru.ca/og-events-image.jpg",
+          twitterImage: "https://gatherguru.ca/twitter-events-image.jpg"
+        }}
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          "name": "Explore Events - GatherGuru",
+          "description": "Browse and discover amazing events in your area. From concerts and workshops to corporate events and cultural festivals, find the perfect event for you.",
+          "url": "https://gatherguru.ca/events",
+          "mainEntity": {
+            "@type": "WebSite",
+            "name": "GatherGuru",
+            "url": "https://gatherguru.ca/",
+            "description": "Event discovery and booking platform",
+            "potentialAction": {
+              "@type": "SearchAction",
+              "target": "https://gatherguru.ca/events?query={search_term_string}",
+              "query-input": "required name=search_term_string"
+            }
+          },
+          "breadcrumb": {
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Home",
+                "item": "https://gatherguru.ca/"
+              },
+              {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Explore Events",
+                "item": "https://gatherguru.ca/events"
+              }
+            ]
+          }
+        }}
+      />
       <UserNavbar />
       <TextSizeControls />
 

@@ -83,15 +83,10 @@ app.use((req, res, next) => {
 // Connect to MongoDB
 const connectDB = async () => {
   try {
-    console.log('Attempting to connect to MongoDB...');
     const mongoUri = process.env.MONGO_URI;
     if (!mongoUri) {
       console.error('MONGO_URI environment variable is not set');
-      // Don't exit in serverless environment
-      if (process.env.NODE_ENV !== 'production') {
-        process.exit(1);
-      }
-      return;
+      process.exit(1);
     }
     
     await mongoose.connect(mongoUri, {
@@ -101,10 +96,7 @@ const connectDB = async () => {
     console.log('MongoDB Connected successfully');
   } catch (err) {
     console.error('MongoDB connection error:', err);
-    // Don't exit in serverless environment
-    if (process.env.NODE_ENV !== 'production') {
-      process.exit(1);
-    }
+    process.exit(1);
   }
 };
 
@@ -131,21 +123,7 @@ app.use('/payments', paymentRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development',
-    mongoConnected: mongoose.connection.readyState === 1
-  });
-});
-
-// Simple test route
-app.get('/test', (req, res) => {
-  res.json({ 
-    message: 'Server is running',
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
-  });
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
 // 404 handler

@@ -31,6 +31,7 @@ import UserEventDetails from './Componets/User/EventDetails';
 import ExploreEvents from './Componets/User/ExploreEvents';
 import AboutUs from './Componets/User/AboutUs';
 import ContactUs from './Componets/User/ContactUs';
+import Accessibility from './Componets/User/Accessibility';
 import UserBookings from './Componets/User/UserBookings';
 import TicketVerification from './Componets/User/TicketVerification';
 import InterestedEvents from './Componets/User/InterestedEvents';
@@ -57,6 +58,7 @@ function App() {
           <Route path="/events/:eventId" element={<UserEventDetails />} />
           <Route path="/about" element={<AboutUs />} />
           <Route path="/contact" element={<ContactUs />} />
+          <Route path="/accessibility" element={<Accessibility />} />
           <Route path="/verify-ticket/:bookingId/:ticketNumber" element={<TicketVerification />} />
           <Route
             path="/user/interested"

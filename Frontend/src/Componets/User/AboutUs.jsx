@@ -131,7 +131,7 @@ const AboutUs = () => {
             <div className="text-center bg-[#2B293D] p-3 md:p-4 rounded-lg">
               <div className="w-16 h-16 md:w-24 md:h-24 bg-[#1a1a2e] rounded-full mx-auto mb-2 md:mb-3">
                 <img
-                  src="/team/.jpg../../../public/Images/Sairaj.jpg"
+                  src="../../../public/Images/Sairaj.jpg"
                   alt="Ravi Mehta"
                   className="w-16 h-16 md:w-24 md:h-24 rounded-full mx-auto mb-2 md:mb-3 object-cover"
                 />

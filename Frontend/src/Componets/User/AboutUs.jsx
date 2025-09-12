@@ -120,9 +120,15 @@ const AboutUs = () => {
           <h2 className="text-xl md:text-3xl font-bold text-white text-center mb-4 md:mb-6 px-2">
             Meet Our Team
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
             <div className="text-center bg-[#2B293D] p-3 md:p-4 rounded-lg">
-              <div className="w-16 h-16 md:w-24 md:h-24 bg-[#1a1a2e] rounded-full mx-auto mb-2 md:mb-3"></div>
+              <div className="w-16 h-16 md:w-24 md:h-24 bg-[#1a1a2e] rounded-full mx-auto mb-2 md:mb-3">
+                <img
+                  src="/Images/Ravi.jpg"
+                  alt="Ravi Mehta"
+                  className="w-16 h-16 md:w-24 md:h-24 rounded-full mx-auto mb-2 md:mb-3 object-cover"
+                />
+              </div>
               <h3 className="text-sm md:text-lg font-semibold text-white">
                 Ravi Mehta
               </h3>
@@ -144,7 +150,13 @@ const AboutUs = () => {
               </p>
             </div>
             <div className="text-center bg-[#2B293D] p-3 md:p-4 rounded-lg">
-              <div className="w-16 h-16 md:w-24 md:h-24 bg-[#1a1a2e] rounded-full mx-auto mb-2 md:mb-3"></div>
+              <div className="w-16 h-16 md:w-24 md:h-24 bg-[#1a1a2e] rounded-full mx-auto mb-2 md:mb-3">
+                <img
+                  src="/Images/Bhavin.jpg"
+                  alt="Bhavin Patel"
+                  className="w-16 h-16 md:w-24 md:h-24 rounded-full mx-auto mb-2 md:mb-3 object-cover"
+                />
+              </div>
               <h3 className="text-sm md:text-lg font-semibold text-white">
                 Bhavi Patel
               </h3>

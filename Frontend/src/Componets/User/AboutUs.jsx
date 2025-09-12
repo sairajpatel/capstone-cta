@@ -2,7 +2,6 @@ import React from "react";
 import UserNavbar from "./UserNavbar";
 import UserFooter from "./UserFooter";
 import TextSizeControls from "./TextSizeControls";
-import sairaj from ''
 
 const AboutUs = () => {
   return (
